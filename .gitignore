@@ -1,2 +1,4 @@
 env/**
-**/static/
+static/images/**
+static/cert/*
+*.pyc
