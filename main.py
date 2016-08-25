@@ -23,10 +23,12 @@ except ImportError:
 from flask import Flask, render_template, send_from_directory, send_file, request
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
 from uuid import uuid4
-from urllib import urlopen
 from pytz import timezone
 import datetime
+import urllib
+
 DEFAULT_TIMEZONE = 'US/Pacific'
+DEFAULT_LOGOTEXT = 'SUBWAY'
 
 
 app = Flask(__name__)
@@ -79,11 +81,12 @@ def send_pass():
     passfile.barcode = Barcode(message=msg, format=BarcodeFormat.QR)
     passfile.foregroundColor = 'rgb(255, 255, 255)'
     passfile.backgroundColor = 'rgb(72,158,59)'
+    passfile.logoText = DEFAULT_LOGOTEXT
 
     # Including the icon and logo is necessary for the passbook to be valid.
     passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
     passfile.addFile('logo.png', open('static/images/pass/logo.png', 'r'))
-    passfile.addFile('strip.png', StringIO(urlopen(offerimg).read()))
+    passfile.addFile('strip.png', StringIO(urllib.urlopen(offerimg).read()))
 
     # Create and output the Passbook file (.pkpass)
     pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
