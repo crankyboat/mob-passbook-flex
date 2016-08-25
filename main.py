@@ -14,7 +14,6 @@
 
 # [START app]
 import logging
-import datetime
 
 try:
     from cStringIO import StringIO
@@ -25,7 +24,9 @@ from flask import Flask, render_template, send_from_directory, send_file, reques
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
 from uuid import uuid4
 from urllib import urlopen
-from pyzipcode import ZipCodeDatabase
+from pytz import timezone
+import datetime
+DEFAULT_TIMEZONE = 'US/Pacific'
 
 
 app = Flask(__name__)
@@ -45,39 +46,24 @@ def send_pass():
 
     # Context info
     zipcode = request.args.get('zipcode')
-    zcdb = ZipCodeDatabase()
-    timezone = zcdb[zipcode].timezone + 1 #HACK yet to fix timezone
-
-    class tzfromzip(datetime.tzinfo):
-        _offset = datetime.timedelta(hours=timezone)
-        _dst = datetime.timedelta(hours=1)
-        _name = str(timezone)
-        def utcoffset(self, date_time):
-            return self.__class__._offset
-        def dst(self, date_time):
-            return self.__class__._dst
-        def tzname(self, date_time):
-            return self.__class__._name
-        def utcoffset(self, date_time):
-            return self.__class__._offset
 
     # Offer info
-    offername = request.args.get('offerName')
     offertext = request.args.get('offerText')
     offerimg = request.args.get('offerImage')
     offerexp = request.args.get('offerExpiration')
-    offerexp_int = [int(s) for s in offerexp.split('/')]
-    offerexpdt = datetime.datetime(offerexp_int[0], offerexp_int[1], offerexp_int[2], 23, 59, 59, 0, tzinfo=tzfromzip()).isoformat('T')
+    offerexp_int = [int(s) for s in offerexp.split('/')] + [23, 59, 59, 0]
+    offerexpdt = datetime.datetime(*offerexp_int)
+    offerexpdt = timezone(DEFAULT_TIMEZONE).localize(offerexpdt)
+    offerexpdt = offerexpdt.isoformat('T')
 
     msg = fname + ' ' + lname + '\n'
     msg += offertext + '\n'
     msg += uid + '\n'
-    msg += '6" Meatball Sandwich\n'
     msg += offerexp + '\n'
 
     cardInfo = Coupon()
-    cardInfo.addPrimaryField('offer', offername, offertext)
-    cardInfo.addAuxiliaryDateField('expires', offerexpdt, 'EXPIRES')
+    cardInfo.addPrimaryField('offer', '', offertext)
+    cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES', type='Date')
 
     organizationName = 'Mobivity'
     passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
@@ -104,7 +90,6 @@ def send_pass():
     pkpass.seek(0)
 
     return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
-    # return send_from_directory('static', 'Test.pkpass', mimetype='application/vnd.apple.pkpass')
 
 @app.errorhandler(500)
 def server_error(e):

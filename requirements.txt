@@ -1,4 +1,6 @@
 Flask>=0.11.1
 gunicorn>=19.6.0
-passbook>=1.0.2
-pyzipcode>=1.0
+pytz
+tzlocal
+-e git+https://github.com/crankyboat/passbook-pull.git#egg=passbook
+# passbook>=1.0.2
