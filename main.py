@@ -19,24 +19,72 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from flask import Flask, render_template, send_from_directory, send_file, request
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
+
+# Pass generation
 from uuid import uuid4
 from pytz import timezone
 import datetime
 import urllib
 
+# Bigquery
+from gcloud import bigquery
+import googlemaps
+
+
 DEFAULT_TIMEZONE = 'US/Pacific'
 DEFAULT_LOGOTEXT = 'SUBWAY'
+BIGQUERY_PROJECT_ID = 'kinetic-anvil-797'
 
 
 app = Flask(__name__)
 
 
+def _get_store_from_zip(zipcode):
+
+    logging.basicConfig(filename='main.log', level=logging.INFO)
+
+    # Lookup zipcode by geocoding API
+    geoKey = 'AIzaSyDiiA_SRmtBpv-SmR1jsPLJHpgg0l9a0Bk'
+    geoClient = googlemaps.Client(geoKey)
+    results = geoClient.geocode(zipcode)
+    ne = results[0]['geometry']['bounds']['northeast']
+    sw = results[0]['geometry']['bounds']['southwest']
+    bounds = (sw['lat'], ne['lat'], sw['lng'], ne['lng'])
+    logging.info(bounds)
+
+    # Query stores
+    client = bigquery.Client(project=BIGQUERY_PROJECT_ID)
+    # Depends on Christian's tables!
+    QUERY = """
+        SELECT lat,lng
+        FROM christian_playground.subway_coords
+        WHERE (lat BETWEEN {} AND {})
+        AND (lng BETWEEN {} AND {})
+    """.format(*bounds) # USE BETWEEN INSTEAD!
+    query = client.run_sync_query(QUERY)
+    query.timeout_ms = 1000
+    query.run()
+    logging.info(query.rows[:10])
+
+    return query.rows[:10]
+
 @app.route('/')
 def hello():
     return render_template('index.html')
+
+@app.route('/bigtable/<zipcode>')
+def get_geo(zipcode):
+
+    _get_store_from_zip(zipcode)
+
+    return 'Hello Bigquery!'
 
 @app.route('/pass')
 def send_pass():
@@ -48,13 +96,16 @@ def send_pass():
 
     # Context info
     zipcode = request.args.get('zipcode')
+    storeGeo = _get_store_from_zip(zipcode)
 
     # Offer info
     offertext = request.args.get('offerText')
     offerimg = request.args.get('offerImage')
+    offerimgHR = request.args.get('offerImageHighRes')
     offerexp = request.args.get('offerExpiration')
-    offerexp_int = [int(s) for s in offerexp.split('/')] + [23, 59, 59, 0]
-    offerexpdt = datetime.datetime(*offerexp_int)
+    odate = datetime.datetime.strptime(offerexp, "%m/%d/%Y")
+    otime = datetime.time(23, 59, 59, 0)
+    offerexpdt = datetime.datetime.combine(odate, otime)
     offerexpdt = timezone(DEFAULT_TIMEZONE).localize(offerexpdt)
     offerexpdt = offerexpdt.isoformat('T')
 
@@ -64,7 +115,7 @@ def send_pass():
     msg += offerexp + '\n'
 
     cardInfo = Coupon()
-    cardInfo.addPrimaryField('offer', '', offertext)
+    cardInfo.addPrimaryField('offer', '', '') # Text on strip image
     cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES', type='Date')
 
     organizationName = 'Mobivity'
@@ -82,11 +133,16 @@ def send_pass():
     passfile.foregroundColor = 'rgb(255, 255, 255)'
     passfile.backgroundColor = 'rgb(72,158,59)'
     passfile.logoText = DEFAULT_LOGOTEXT
+    for (lat,lng) in storeGeo:
+        passfile.addLocation(lat, lng, 'Store nearby.')
 
     # Including the icon and logo is necessary for the passbook to be valid.
     passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
     passfile.addFile('logo.png', open('static/images/pass/logo.png', 'r'))
     passfile.addFile('strip.png', StringIO(urllib.urlopen(offerimg).read()))
+    passfile.addFile('strip@2x.png', StringIO(urllib.urlopen(offerimgHR).read()))
+    # passfile.addFile('strip.png', open('static/images/pass/strip.png', 'r'))
+    # passfile.addFile('strip@2x.png', open('static/images/pass/strip@2x.png', 'r'))
 
     # Create and output the Passbook file (.pkpass)
     pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
