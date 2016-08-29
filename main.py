@@ -32,6 +32,11 @@ from uuid import uuid4
 from pytz import timezone
 import datetime
 import urllib
+import urllib3
+from mem import Memory
+import tasks
+import config
+import psq
 
 # Bigquery
 from gcloud import bigquery
@@ -41,14 +46,21 @@ import googlemaps
 DEFAULT_TIMEZONE = 'US/Pacific'
 DEFAULT_LOGOTEXT = 'SUBWAY'
 BIGQUERY_PROJECT_ID = 'kinetic-anvil-797'
+PASS_MEM = Memory()
 
 
 app = Flask(__name__)
+app.config.from_object(config)
+
+
+# [START imgload_queue]
+with app.app_context():
+    imgload_queue = tasks.get_imgload_queue()
+# [END imgload_queue]
+
 
 
 def _get_store_from_zip(zipcode):
-
-    logging.basicConfig(filename='main.log', level=logging.INFO)
 
     # Lookup zipcode by geocoding API
     geoKey = 'AIzaSyDiiA_SRmtBpv-SmR1jsPLJHpgg0l9a0Bk'
@@ -77,13 +89,18 @@ def _get_store_from_zip(zipcode):
 
 @app.route('/')
 def hello():
+
+    # Queue load image task
+    offerimg = request.args.get('offerImage')
+    offerimgHR = request.args.get('offerImageHighRes')
+    q = tasks.get_imgload_queue()
+    PASS_MEM.loadimg = q.enqueue(tasks.load_img, offerimg, offerimgHR)
+
     return render_template('index.html')
 
 @app.route('/bigtable/<zipcode>')
 def get_geo(zipcode):
-
     _get_store_from_zip(zipcode)
-
     return 'Hello Bigquery!'
 
 @app.route('/pass')
@@ -99,9 +116,9 @@ def send_pass():
     storeGeo = _get_store_from_zip(zipcode)
 
     # Offer info
-    offertext = request.args.get('offerText')
     offerimg = request.args.get('offerImage')
     offerimgHR = request.args.get('offerImageHighRes')
+    offertext = request.args.get('offerText')
     offerexp = request.args.get('offerExpiration')
     odate = datetime.datetime.strptime(offerexp, "%m/%d/%Y")
     otime = datetime.time(23, 59, 59, 0)
@@ -139,10 +156,23 @@ def send_pass():
     # Including the icon and logo is necessary for the passbook to be valid.
     passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
     passfile.addFile('logo.png', open('static/images/pass/logo.png', 'r'))
-    passfile.addFile('strip.png', StringIO(urllib.urlopen(offerimg).read()))
-    passfile.addFile('strip@2x.png', StringIO(urllib.urlopen(offerimgHR).read()))
-    # passfile.addFile('strip.png', open('static/images/pass/strip.png', 'r'))
-    # passfile.addFile('strip@2x.png', open('static/images/pass/strip@2x.png', 'r'))
+    # passfile.addFile('strip.png', StringIO(urllib.urlopen(offerimg).read()))
+    # passfile.addFile('strip@2x.png', StringIO(urllib.urlopen(offerimgHR).read()))
+
+    # Retrieve queued result
+    try:
+        offerimg, offerimgHR = PASS_MEM.loadimg.result(timeout=1)
+    except psq.task.TimeoutError:
+        http = urllib3.PoolManager()
+        req = http.request('GET', offerimg, preload_content=False)
+        offerimg = req.read()
+        req.release_conn()
+        req = http.request('GET', offerimgHR, preload_content=False)
+        offerimgHR = req.read()
+        req.release_conn()
+        logging.error('Preload TimeoutError.')
+    passfile.addFile('strip.png', StringIO(offerimg))
+    passfile.addFile('strip@2x.png', StringIO(offerimgHR))
 
     # Create and output the Passbook file (.pkpass)
     pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')

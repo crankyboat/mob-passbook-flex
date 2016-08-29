@@ -32,18 +32,6 @@ DATA_BACKEND = 'datastore'
 # https://console.developers.google.com
 PROJECT_ID = 'mobivitypassbook-staging'
 
-# SQLAlchemy configuration
-# Replace user, pass, host, and database with the respective values of your
-# Cloud SQL instance.
-SQLALCHEMY_DATABASE_URI = \
-    'mysql+pymysql://user:password@host/database'
-
-# Mongo configuration
-# If using mongolab, the connection URI is available from the mongolab control
-# panel. If self-hosting on compute engine, replace the values below.
-MONGO_URI = \
-    'mongodb://user:password@host:27017/database'
-
 # Google Cloud Storage and upload settings.
 # Typically, you'll name your bucket the same as your project. To create a
 # bucket:

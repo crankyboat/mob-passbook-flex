@@ -1,0 +1,13 @@
+# [START worker]
+service: worker
+runtime: python
+vm: true
+
+# Instead of using gunicorn directly, we'll use Honcho. Honcho is a python port
+# of the Foreman process manager. For the worker module, both the queue worker
+# and the monitor process are needed.
+entrypoint: honcho start -f procfile worker #monitor
+
+runtime_config:
+  python_version: 3
+# [END worker]

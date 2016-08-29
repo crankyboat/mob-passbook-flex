@@ -2,7 +2,8 @@ runtime: python
 vm: true
 
 # [START entrypoint]
-entrypoint: gunicorn -b :$PORT main:app
+#entrypoint: gunicorn -b :$PORT main:app
+entrypoint: honcho start -f procfile app
 # [END entrypoint]
 
 health_check:
