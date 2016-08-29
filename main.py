@@ -24,7 +24,7 @@ try:
 except ImportError:
     import json
 
-from flask import Flask, render_template, send_from_directory, send_file, request
+from flask import Flask, render_template, send_from_directory, send_file, request, make_response
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
 
 # Pass generation
@@ -59,7 +59,6 @@ with app.app_context():
 # [END imgload_queue]
 
 
-
 def _get_store_from_zip(zipcode):
 
     # Lookup zipcode by geocoding API
@@ -87,6 +86,7 @@ def _get_store_from_zip(zipcode):
 
     return query.rows[:10]
 
+
 @app.route('/')
 def hello():
 
@@ -98,10 +98,12 @@ def hello():
 
     return render_template('index.html')
 
+
 @app.route('/bigtable/<zipcode>')
 def get_geo(zipcode):
     _get_store_from_zip(zipcode)
     return 'Hello Bigquery!'
+
 
 @app.route('/pass')
 def send_pass():
@@ -152,6 +154,8 @@ def send_pass():
     passfile.logoText = DEFAULT_LOGOTEXT
     for (lat,lng) in storeGeo:
         passfile.addLocation(lat, lng, 'Store nearby.')
+    passfile.expirationDate = offerexpdt
+    passfile.voided = True
 
     # Including the icon and logo is necessary for the passbook to be valid.
     passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
@@ -174,11 +178,45 @@ def send_pass():
     passfile.addFile('strip.png', StringIO(offerimg))
     passfile.addFile('strip@2x.png', StringIO(offerimgHR))
 
+    # # Include info for update
+    # passfile.webServiceURL = 'https://mobivitypassbook-staging/passkit'
+    # passfile.webServiceURL = 'http://127.0.0.1:8080/passkit'
+    # passfile.authenticationToken = '0123456789123456' # TEMP
+
     # Create and output the Passbook file (.pkpass)
     pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
     pkpass.seek(0)
 
     return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
+
+
+# @app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
+#           'registrations/<passTypeIdentifier>/<serialNumber>',
+#           methods=['POST', 'DELETE'])
+# def register_pass(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
+#
+#     logging.basicConfig(filename='passkit.log', level=logging.INFO)
+#     if request.method == 'POST':
+#
+#         # Register device and pass
+#         logging.info('Version: '+version)
+#         logging.info('DevLib: '+deviceLibraryIdentifier)
+#         logging.info('PassType: '+passTypeIdentifier)
+#         logging.info('Serial: '+serialNumber)
+#
+#         logging.info(request.headers)
+#         logging.info(request.get_json())
+#         logging.info(request.json['pushToken'])
+#
+#         # Registration suceeds
+#         return make_response('Successful registration!', 201)
+#
+#     else: #request.method == 'DELETE'
+#
+#         # Unregister pass
+#         return make_response('Successful unregistration!', 200)
+#
+#     pass
 
 @app.errorhandler(500)
 def server_error(e):
