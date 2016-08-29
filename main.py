@@ -124,9 +124,9 @@ def send_pass():
     offerexp = request.args.get('offerExpiration')
     odate = datetime.datetime.strptime(offerexp, "%m/%d/%Y")
     otime = datetime.time(23, 59, 59, 0)
-    offerexpdt = datetime.datetime.combine(odate, otime)
-    offerexpdt = timezone(DEFAULT_TIMEZONE).localize(offerexpdt)
-    offerexpdt = offerexpdt.isoformat('T')
+    offerexpdt_obj = datetime.datetime.combine(odate, otime)
+    offerexpdt_obj = timezone(DEFAULT_TIMEZONE).localize(offerexpdt_obj)
+    offerexpdt = offerexpdt_obj.isoformat('T')
 
     msg = fname + ' ' + lname + '\n'
     msg += offertext + '\n'
@@ -155,7 +155,12 @@ def send_pass():
     for (lat,lng) in storeGeo:
         passfile.addLocation(lat, lng, 'Store nearby.')
     passfile.expirationDate = offerexpdt
-    passfile.voided = True
+
+    now_utc = datetime.datetime.now(timezone('UTC'))
+    pass_utc = offerexpdt_obj.astimezone(timezone('UTC'))
+    logging.info(now_utc.isoformat(' '))
+    logging.info(pass_utc.isoformat(' '))
+    passfile.voided = (now_utc==pass_utc)
 
     # Including the icon and logo is necessary for the passbook to be valid.
     passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
@@ -178,10 +183,10 @@ def send_pass():
     passfile.addFile('strip.png', StringIO(offerimg))
     passfile.addFile('strip@2x.png', StringIO(offerimgHR))
 
-    # # Include info for update
-    # passfile.webServiceURL = 'https://mobivitypassbook-staging/passkit'
-    # passfile.webServiceURL = 'http://127.0.0.1:8080/passkit'
-    # passfile.authenticationToken = '0123456789123456' # TEMP
+    # Include info for update
+    passfile.webServiceURL = 'https://mobivitypassbook-staging/passkit'
+    passfile.webServiceURL = 'http://127.0.0.1:8080/passkit'
+    passfile.authenticationToken = '0123456789123456' # TEMP
 
     # Create and output the Passbook file (.pkpass)
     pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
@@ -190,33 +195,33 @@ def send_pass():
     return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
 
 
-# @app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
-#           'registrations/<passTypeIdentifier>/<serialNumber>',
-#           methods=['POST', 'DELETE'])
-# def register_pass(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
-#
-#     logging.basicConfig(filename='passkit.log', level=logging.INFO)
-#     if request.method == 'POST':
-#
-#         # Register device and pass
-#         logging.info('Version: '+version)
-#         logging.info('DevLib: '+deviceLibraryIdentifier)
-#         logging.info('PassType: '+passTypeIdentifier)
-#         logging.info('Serial: '+serialNumber)
-#
-#         logging.info(request.headers)
-#         logging.info(request.get_json())
-#         logging.info(request.json['pushToken'])
-#
-#         # Registration suceeds
-#         return make_response('Successful registration!', 201)
-#
-#     else: #request.method == 'DELETE'
-#
-#         # Unregister pass
-#         return make_response('Successful unregistration!', 200)
-#
-#     pass
+@app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
+          'registrations/<passTypeIdentifier>/<serialNumber>',
+          methods=['POST', 'DELETE'])
+def register_pass(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
+
+    # logging.basicConfig(filename='passkit.log', level=logging.INFO)
+    if request.method == 'POST':
+
+        # Register device and pass
+        logging.info('Version: '+version)
+        logging.info('DevLib: '+deviceLibraryIdentifier)
+        logging.info('PassType: '+passTypeIdentifier)
+        logging.info('Serial: '+serialNumber)
+
+        logging.info(request.headers)
+        logging.info(request.get_json())
+        logging.info(request.json['pushToken'])
+
+        # Registration suceeds
+        return make_response('Successful registration!', 201)
+
+    else: #request.method == 'DELETE'
+
+        # Unregister pass
+        return make_response('Successful unregistration!', 200)
+
+    pass
 
 @app.errorhandler(500)
 def server_error(e):
