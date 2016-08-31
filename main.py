@@ -24,19 +24,21 @@ try:
 except ImportError:
     import json
 
-from flask import Flask, render_template, send_from_directory, send_file, request, make_response
+from flask import Flask, Response, render_template, send_from_directory, send_file, request, make_response
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
 
 # Pass generation
 from uuid import uuid4
 from pytz import timezone
 import datetime
-import urllib
 import urllib3
 from mem import Memory
 import tasks
 import config
 import psq
+
+# Push Notification Service
+import apns
 
 # Bigquery
 from gcloud import bigquery
@@ -154,13 +156,12 @@ def send_pass():
     passfile.logoText = DEFAULT_LOGOTEXT
     for (lat,lng) in storeGeo:
         passfile.addLocation(lat, lng, 'Store nearby.')
-    passfile.expirationDate = offerexpdt
-
     now_utc = datetime.datetime.now(timezone('UTC'))
     pass_utc = offerexpdt_obj.astimezone(timezone('UTC'))
     logging.info(now_utc.isoformat(' '))
     logging.info(pass_utc.isoformat(' '))
     passfile.voided = (now_utc==pass_utc)
+    passfile.expirationDate = offerexpdt
 
     # Including the icon and logo is necessary for the passbook to be valid.
     passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
@@ -184,9 +185,9 @@ def send_pass():
     passfile.addFile('strip@2x.png', StringIO(offerimgHR))
 
     # Include info for update
-    passfile.webServiceURL = 'https://mobivitypassbook-staging/passkit'
-    passfile.webServiceURL = 'http://127.0.0.1:8080/passkit'
-    passfile.authenticationToken = '0123456789123456' # TEMP
+    # passfile.webServiceURL = 'http://127.0.0.1:8080/passkit/' # This line prevents pass from being downloaded when deployed on GAE
+    passfile.webServiceURL = 'https://mobivitypassbook-staging.appspot.com/passkit/'
+    passfile.authenticationToken = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc' # TEMP
 
     # Create and output the Passbook file (.pkpass)
     pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
@@ -195,33 +196,89 @@ def send_pass():
     return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
 
 
+# [START Passkit Support]
+
 @app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
           'registrations/<passTypeIdentifier>/<serialNumber>',
           methods=['POST', 'DELETE'])
 def register_pass(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
 
-    # logging.basicConfig(filename='passkit.log', level=logging.INFO)
     if request.method == 'POST':
 
         # Register device and pass
-        logging.info('Version: '+version)
-        logging.info('DevLib: '+deviceLibraryIdentifier)
-        logging.info('PassType: '+passTypeIdentifier)
-        logging.info('Serial: '+serialNumber)
-
-        logging.info(request.headers)
-        logging.info(request.get_json())
-        logging.info(request.json['pushToken'])
+        logging.error('Push Token: {}'.format(request.json['pushToken']))
+        PASS_MEM.pushtoken = request.json['pushToken']
 
         # Registration suceeds
         return make_response('Successful registration!', 201)
 
     else: #request.method == 'DELETE'
 
+        PASS_MEM.pushtoken = None
+
         # Unregister pass
         return make_response('Successful unregistration!', 200)
 
     pass
+
+
+@app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
+          'registrations/<passTypeIdentifier>', methods=['GET'])
+def get_device_serials(version, deviceLibraryIdentifier, passTypeIdentifier):
+
+    tag = request.args.get('passesUpdatedSince')
+    resp = json.dumps({'lastUpdated': 'prev_tag', 'serialNumber': ['633dfac9ea9d4bbc89c60a208ee83458', '000000']})
+
+    return Response(response=resp, status=200, mimetype='application/json')
+
+
+@app.route('/passkit/<version>/passes/<passTypeIdentifier>/<serialNumber>', methods=['GET'])
+def get_latest_pass(version, passTypeIdentifier, serialNumber):
+
+    latestPass = json.dumps({})
+    return Response(response=latestPass, status=200, mimetype='application/json')
+
+
+@app.route('/passkit/<version>/log', methods=['POST'])
+def log_passkit(version):
+
+    logs = request.get_json()['logs']
+    return Response(response=json.dumps({'success': True}), status=200, mimetype='application/json')
+
+# [END Passkit Support]
+
+
+# [START PUSH NOTIFICATION SUPPORT]
+@app.route('/push')
+def push_notification():
+
+    if apns.make_ssl_context:
+        get_context = apns.make_ssl_context
+    else:
+        get_context = apns.make_ossl_context
+
+    logging.error('SSL context version: {}'.format(get_context))
+
+    # Connect
+    context = get_context(
+        certfile='static/cert/certificate.pem',
+        keyfile='static/cert/key.pem',
+        password=''
+    )
+    push_id = uuid4().hex
+
+    # PASSES MUST BE PROCESSED BY THE PRODUCTION APNS! NOT DEVELOPMENT!
+    client = apns.Client(ssl_context=context, sandbox=False)
+    msg = apns.Message(id=push_id)
+    PASS_MEM.pushtoken = '56ce0a56f2515ff002d5865fd1086beb80bb5c19403095fd607040a88580b67a'
+    apns_id = client.push(msg, PASS_MEM.pushtoken)
+
+
+
+    return 'Hello Push!'
+
+
+# [END PUSH NOTIFICATION SUPPORT]
 
 @app.errorhandler(500)
 def server_error(e):

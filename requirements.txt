@@ -5,8 +5,11 @@ gunicorn>=19.6.0
 honcho>=0.7.1
 psq>=0.4.0
 pytz>=2016.6.1
-urllib3
+urllib3>=1.15
+mock>=1.0.0
 -e git+https://github.com/crankyboat/passbook-pull.git#egg=passbook
+-e git+https://github.com/crankyboat/apns3-pull.git@develop#egg=apns3[pyopenssl]
+# -e ./apns3[pyopenssl]
 # -e ./passbook/
 # passbook>=1.0.2
-# google-api-python-client
+# apns3[pyopenssl]>=1.0.0
