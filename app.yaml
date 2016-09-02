@@ -1,4 +1,4 @@
-runtime: python
+runtime: custom
 vm: true
 
 # [START entrypoint]

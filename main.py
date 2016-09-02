@@ -28,7 +28,7 @@ from flask import Flask, Response, render_template, send_from_directory, send_fi
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
 
 # Pass generation
-from uuid import uuid4
+from uuid import uuid4, UUID
 from pytz import timezone
 import datetime
 import urllib3
@@ -172,7 +172,7 @@ def send_pass():
     # Retrieve queued result
     try:
         offerimg, offerimgHR = PASS_MEM.loadimg.result(timeout=1)
-    except psq.task.TimeoutError:
+    except: # psq.task.TimeoutError or PASS_MEM==NoneType
         http = urllib3.PoolManager()
         req = http.request('GET', offerimg, preload_content=False)
         offerimg = req.read()
@@ -180,12 +180,13 @@ def send_pass():
         req = http.request('GET', offerimgHR, preload_content=False)
         offerimgHR = req.read()
         req.release_conn()
-        logging.error('Preload TimeoutError.')
+        logging.error('IMAGE PRELOAD TimeoutError.')
     passfile.addFile('strip.png', StringIO(offerimg))
     passfile.addFile('strip@2x.png', StringIO(offerimgHR))
 
     # Include info for update
-    # passfile.webServiceURL = 'http://127.0.0.1:8080/passkit/' # This line prevents pass from being downloaded when deployed on GAE
+    # Below line prevents pass from being downloaded when deployed on GAE
+    # passfile.webServiceURL = 'http://127.0.0.1:8080/passkit/'
     passfile.webServiceURL = 'https://mobivitypassbook-staging.appspot.com/passkit/'
     passfile.authenticationToken = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc' # TEMP
 
@@ -227,7 +228,7 @@ def register_pass(version, deviceLibraryIdentifier, passTypeIdentifier, serialNu
 def get_device_serials(version, deviceLibraryIdentifier, passTypeIdentifier):
 
     tag = request.args.get('passesUpdatedSince')
-    resp = json.dumps({'lastUpdated': 'prev_tag', 'serialNumber': ['633dfac9ea9d4bbc89c60a208ee83458', '000000']})
+    resp = json.dumps({'lastUpdated': 'prev_tag', 'serialNumbers': ['633dfac9ea9d4bbc89c60a208ee83458']})
 
     return Response(response=resp, status=200, mimetype='application/json')
 
@@ -235,7 +236,9 @@ def get_device_serials(version, deviceLibraryIdentifier, passTypeIdentifier):
 @app.route('/passkit/<version>/passes/<passTypeIdentifier>/<serialNumber>', methods=['GET'])
 def get_latest_pass(version, passTypeIdentifier, serialNumber):
 
-    latestPass = json.dumps({})
+    latestPass = json.dumps(
+        {"serialNumber": "633dfac9ea9d4bbc89c60a208ee83458","organizationName": "Mobivity", "description": "", "coupon":{"auxiliaryFields": [{"timeStyle": "PKDateStyleShort", "dateStyle": "PKDateStyleShort", "value": "2016-11-11T23:59:59-07:00", "label": "EXPIRES", "key": "expires", "changeMessage": "", "isRelative": False, "textAlignment": "PKTextAlignmentLeft"}],"primaryFields": [{"changeMessage": "", "textAlignment": "PKTextAlignmentLeft", "value": "", "key": "offer", "label": ""}]}, "barcode": {"message": "Jonathan Twomley\nFREE 6-INCH CLASSIC SUB WITH PURCHASE OF A 30 OZ DRINK\n10153420835831891\n11/11/2016\n", "altText": "", "messageEncoding": "iso-8859-1", "format": "PKBarcodeFormatQR"}, "passTypeIdentifier": "pass.com.mobivity.scannerdemo", "locations": [{"latitude": 32.854299, "altitude": 0.0, "relevantText": "Store nearby.", "longitude": -117.2051141}, {"latitude": 32.8690181, "altitude": 0.0, "relevantText": "Store nearby.", "longitude": -117.2150024}, {"latitude": 32.8707537, "altitude": 0.0, "relevantText": "Store nearby.", "longitude": -117.2109368}, {"latitude": 32.8753618, "altitude": 0.0, "relevantText": "Store nearby.", "longitude": -117.2358622}], "authenticationToken": "vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc", "webServiceURL": "https://mobivitypassbook-staging.appspot.com/passkit/", "teamIdentifier": "D96C59RED5", "formatVersion": 1, "foregroundColor": "rgb(255, 255, 255)", "expirationDate": "2016-11-11T23:59:59-07:00", "backgroundColor": "rgb(72,158,59)", "suppressStripShine": False, "logoText": "SUBWAY", "barcodes": [{"message": "Jonathan Twomley\nFREE 6-INCH CLASSIC SUB WITH PURCHASE OF A 30 OZ DRINK\n10153420835831891\n9/11/2016\n", "altText": "", "messageEncoding": "iso-8859-1", "format": "PKBarcodeFormatQR"}]}
+    )
     return Response(response=latestPass, status=200, mimetype='application/json')
 
 
@@ -249,8 +252,17 @@ def log_passkit(version):
 
 
 # [START PUSH NOTIFICATION SUPPORT]
+
 @app.route('/push')
 def push_notification():
+
+    import ssl
+    import OpenSSL
+    from OpenSSL._util import lib as OpenSSLlib
+    logging.error('OpenSSL version: {}'.format(OpenSSL.__version__))
+    logging.error('OpenSSL lib has ALPN: {}'.format(OpenSSLlib.Cryptography_HAS_ALPN)) #The test that failed on GAE
+    logging.error('SSL openssl version: {}'.format(ssl._OPENSSL_API_VERSION))
+    # logging.error('SSL has ALPN: {}'.format(ssl.HAS_ALPN)) #Failed on GAE because of older python version
 
     if apns.make_ssl_context:
         get_context = apns.make_ssl_context
@@ -272,13 +284,17 @@ def push_notification():
     msg = apns.Message(id=push_id)
     PASS_MEM.pushtoken = '56ce0a56f2515ff002d5865fd1086beb80bb5c19403095fd607040a88580b67a'
     apns_id = client.push(msg, PASS_MEM.pushtoken)
+    logging.error('Push id: {}, APNS_id: {}'.format(UUID(push_id), apns_id))
 
-
-
-    return 'Hello Push!'
-
+    return 'Push!\n{}\n{}\n{}\n{}\n'.format(
+        OpenSSL.__version__,
+        OpenSSLlib.Cryptography_HAS_ALPN,
+        ssl._OPENSSL_API_VERSION,
+        apns_id
+    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 # [END PUSH NOTIFICATION SUPPORT]
+
 
 @app.errorhandler(500)
 def server_error(e):
