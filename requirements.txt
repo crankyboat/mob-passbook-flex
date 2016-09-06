@@ -1,4 +1,5 @@
 gcloud>=0.18.1
+oauth2client>=3.0.0
 googlemaps>=2.4
 Flask>=0.11.1
 gunicorn>=19.6.0
@@ -11,5 +12,3 @@ mock>=1.0.0
 -e git+https://github.com/crankyboat/apns3-pull.git@develop#egg=apns3[pyopenssl]
 # -e ./apns3[pyopenssl]
 # -e ./passbook/
-# passbook>=1.0.2
-# apns3[pyopenssl]>=1.0.0
