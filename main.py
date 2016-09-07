@@ -14,82 +14,38 @@
 
 # [START app]
 import logging
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import config
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from flask import Flask, Response, render_template, send_from_directory, send_file, request, make_response
-from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
-
-# Pass generation
+from flask import Flask, render_template, send_file, request, Response, make_response
+from gcloud import storage, datastore
 from uuid import uuid4, UUID
-from pytz import timezone
-import datetime
-import urllib3
-from mem import Memory
-import tasks
-import config
-import psq
 
 # Push Notification Service
 import apns
 
-# Bigquery
-from gcloud import bigquery, storage, datastore
-
-import googlemaps
-
-
-DEFAULT_TIMEZONE = 'US/Pacific'
-DEFAULT_LOGOTEXT = 'SUBWAY'
-BIGQUERY_PROJECT_ID = 'kinetic-anvil-797'
-PASS_MEM = Memory()
+# Passkit Web Service
+from passkit import PasskitWebService
+from passgen import PassGenerator
+import tasks
 
 
 app = Flask(__name__)
 app.config.from_object(config)
 gstorage = storage.Client(project=app.config['PROJECT_ID'])
 gds = datastore.Client(project=app.config['PROJECT_ID'])
+passkit = PasskitWebService(datastoreClient=gds,
+                            storageClient=gstorage)
+passgen = PassGenerator()
 
 
 # [START imgload_queue]
 with app.app_context():
     imgload_queue = tasks.get_imgload_queue()
 # [END imgload_queue]
-
-
-def _get_store_from_zip(zipcode):
-
-    # Lookup zipcode by geocoding API
-    geoKey = 'AIzaSyDiiA_SRmtBpv-SmR1jsPLJHpgg0l9a0Bk'
-    geoClient = googlemaps.Client(geoKey)
-    results = geoClient.geocode(zipcode)
-    ne = results[0]['geometry']['bounds']['northeast']
-    sw = results[0]['geometry']['bounds']['southwest']
-    bounds = (sw['lat'], ne['lat'], sw['lng'], ne['lng'])
-    logging.info(bounds)
-
-    # Query stores
-    client = bigquery.Client(project=BIGQUERY_PROJECT_ID)
-    # Depends on Christian's tables!
-    QUERY = """
-        SELECT lat,lng
-        FROM christian_playground.subway_coords
-        WHERE (lat BETWEEN {} AND {})
-        AND (lng BETWEEN {} AND {})
-    """.format(*bounds) # USE BETWEEN INSTEAD!
-    query = client.run_sync_query(QUERY)
-    query.timeout_ms = 1000
-    query.run()
-    logging.info(query.rows[:10])
-
-    return query.rows[:10]
 
 
 @app.route('/')
@@ -99,164 +55,30 @@ def hello():
     offerimg = request.args.get('offerImage')
     offerimgHR = request.args.get('offerImageHighRes')
     q = tasks.get_imgload_queue()
-    PASS_MEM.loadimg = q.enqueue(tasks.load_img, offerimg, offerimgHR)
+    q.enqueue(tasks.load_img, offerimg, offerimgHR)
 
     return render_template('index.html')
-
-
-@app.route('/bigtable/<zipcode>')
-def get_geo(zipcode):
-    _get_store_from_zip(zipcode)
-    return 'Hello Bigquery!'
 
 
 @app.route('/pass')
 def send_pass():
 
-    # User info
-    uid = request.args.get('uid')
-    fname = request.args.get('fname')
-    lname = request.args.get('lname')
+    # Save authtoken to datastore
+    pass_auth = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc' # TEMP
+    passkit.add_pass_authtoken(pass_auth)
 
-    # Context info
-    zipcode = request.args.get('zipcode')
-    storeGeo = _get_store_from_zip(zipcode)
+    # Add pass to datastore
+    pass_serial = uuid4().hex
+    pass_entity = passkit.add_pass(pass_serial, pass_auth, request.args.get('uid'),
+                                   request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
+                                   request.args.get('offerImage'), request.args.get('offerImageHighRes'),
+                                   request.args.get('offerText'), request.args.get('offerExpiration'))
+    logging.error('SERIAL: {}'.format(pass_serial))
 
-    # Offer info
-    offerimg = request.args.get('offerImage')
-    offerimgHR = request.args.get('offerImageHighRes')
-    offertext = request.args.get('offerText')
-    offerexp = request.args.get('offerExpiration')
-    odate = datetime.datetime.strptime(offerexp, "%m/%d/%Y")
-    otime = datetime.time(23, 59, 59, 0)
-    offerexpdt_obj = datetime.datetime.combine(odate, otime)
-    offerexpdt_obj = timezone(DEFAULT_TIMEZONE).localize(offerexpdt_obj)
-    offerexpdt = offerexpdt_obj.isoformat('T')
+    # Generate pass file
+    pkpass = passgen.generate(pass_entity)
 
-    msg = fname + ' ' + lname + '\n'
-    msg += offertext + '\n'
-    msg += uid + '\n'
-    msg += offerexp + '\n'
-
-    cardInfo = Coupon()
-    cardInfo.addPrimaryField('offer', '', '') # Text on strip image
-    cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES',
-                               type='Date', changeMessage='Coupon updated to expire on %@')
-
-    organizationName = 'Mobivity'
-    passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
-    teamIdentifier = 'D96C59RED5'
-
-    passfile = Pass(cardInfo, \
-                    passTypeIdentifier=passTypeIdentifier, \
-                    organizationName=organizationName, \
-                    teamIdentifier=teamIdentifier)
-    passfile.serialNumber = uuid4().hex
-
-    # Customize the pass
-    passfile.barcode = Barcode(message=msg, format=BarcodeFormat.QR)
-    passfile.foregroundColor = 'rgb(255, 255, 255)'
-    passfile.backgroundColor = 'rgb(72,158,59)'
-    passfile.logoText = DEFAULT_LOGOTEXT
-    for (lat,lng) in storeGeo:
-        passfile.addLocation(lat, lng, 'Store nearby.')
-    now_utc = datetime.datetime.now(timezone('UTC'))
-    pass_utc = offerexpdt_obj.astimezone(timezone('UTC'))
-    logging.info(now_utc.isoformat(' '))
-    logging.info(pass_utc.isoformat(' '))
-    passfile.voided = (now_utc==pass_utc)
-    passfile.expirationDate = offerexpdt
-
-    # Including the icon and logo is necessary for the passbook to be valid.
-    passfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
-    passfile.addFile('logo.png', open('static/images/pass/logo.png', 'r'))
-    # passfile.addFile('strip.png', StringIO(urllib.urlopen(offerimg).read()))
-    # passfile.addFile('strip@2x.png', StringIO(urllib.urlopen(offerimgHR).read()))
-
-    # Retrieve queued result
-    try:
-        offerimg, offerimgHR = PASS_MEM.loadimg.result(timeout=1)
-    except: # psq.task.TimeoutError or PASS_MEM==NoneType
-        http = urllib3.PoolManager()
-        req = http.request('GET', offerimg, preload_content=False)
-        offerimg = req.read()
-        req.release_conn()
-        req = http.request('GET', offerimgHR, preload_content=False)
-        offerimgHR = req.read()
-        req.release_conn()
-        logging.error('IMAGE PRELOAD TimeoutError.')
-    passfile.addFile('strip.png', StringIO(offerimg))
-    passfile.addFile('strip@2x.png', StringIO(offerimgHR))
-
-    # Include info for update
-    # Below line prevents pass from being downloaded when deployed on GAE
-    # passfile.webServiceURL = 'http://127.0.0.1:8080/passkit/'
-    passfile.webServiceURL = 'https://mobivitypassbook-staging.appspot.com/passkit/'
-    passfile.authenticationToken = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc' # TEMP
-
-    # Create and output the Passbook file (.pkpass)
-    pkpass = passfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
-    pkpass.seek(0)
-
-
-    ####
-
-    # New expiration time
-    odate = datetime.datetime.strptime('11/11/2016', "%m/%d/%Y")
-    otime = datetime.time(23, 59, 59, 0)
-    offerexpdt_obj = datetime.datetime.combine(odate, otime)
-    offerexpdt_obj = timezone(DEFAULT_TIMEZONE).localize(offerexpdt_obj)
-    offerexpdt = offerexpdt_obj.isoformat('T')
-    now_utc = datetime.datetime.now(timezone('UTC'))
-    pass_utc = offerexpdt_obj.astimezone(timezone('UTC'))
-    logging.info(now_utc.isoformat(' '))
-    logging.info(pass_utc.isoformat(' '))
-
-    cardInfo = Coupon()
-    cardInfo.addPrimaryField('offer', '', '') # Text on strip image
-    cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES',
-                               type='Date', changeMessage='Coupon updated to expire on %@')
-
-    organizationName = 'Mobivity'
-    passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
-    teamIdentifier = 'D96C59RED5'
-
-    newpassfile = Pass(cardInfo, \
-                    passTypeIdentifier=passTypeIdentifier, \
-                    organizationName=organizationName, \
-                    teamIdentifier=teamIdentifier)
-    newpassfile.serialNumber = passfile.serialNumber
-
-    msg = fname + ' ' + lname + '\n'
-    msg += offertext + '\n'
-    msg += uid + '\n'
-    msg += '11/11/2016' + '\n'
-    newpassfile.barcode = Barcode(message=msg, format=BarcodeFormat.QR)
-    newpassfile.foregroundColor = 'rgb(255, 255, 255)'
-    newpassfile.backgroundColor = 'rgb(72,158,59)'
-    newpassfile.logoText = DEFAULT_LOGOTEXT
-    for (lat, lng) in storeGeo:
-        newpassfile.addLocation(lat, lng, 'Store nearby.')
-    newpassfile.addFile('icon.png', open('static/images/pass/icon.png', 'r'))
-    newpassfile.addFile('logo.png', open('static/images/pass/logo.png', 'r'))
-    newpassfile.voided = (now_utc==pass_utc)
-    newpassfile.expirationDate = offerexpdt
-    newpassfile.addFile('strip.png', StringIO(offerimg))
-    newpassfile.addFile('strip@2x.png', StringIO(offerimgHR))
-    newpassfile.webServiceURL = 'https://mobivitypassbook-staging.appspot.com/passkit/'
-    newpassfile.authenticationToken = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc'  # TEMP
-
-    # Create and output the Passbook file (.pkpass)
-    newpkpass = newpassfile.create('static/cert/certificate.pem', 'static/cert/key.pem', 'static/cert/wwdr.pem', '')
-    newpkpass.seek(0)
-
-    bucket = gstorage.get_bucket(app.config['PROJECT_ID'])
-    blob = bucket.blob('newpass.pkpass', chunk_size=262144)
-    blob.upload_from_file(newpkpass, content_type='application/vnd.apple.pkpass')
-
-    ####
-
-    # Send old
+    # Send pass file
     return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
 
 
@@ -265,97 +87,87 @@ def send_pass():
 @app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
           'registrations/<passTypeIdentifier>/<serialNumber>',
           methods=['POST', 'DELETE'])
-def register_pass(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
+def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
 
-    pushtoken = request.json['pushToken']
-    logging.error('PASSKIT TOKEN: {}'.format(pushtoken))
+    authTitle, authToken = request.headers['Authorization'].split()
+    logging.error('PASSKIT AUTHTOKEN: {}'.format(authToken))
 
+    # Authenticate
+    if not passkit.authenticate_authtoken(authTitle, authToken):
+        return 'Unauthorized request.', 401
+
+    # Register
     if request.method == 'POST':
+        pushToken = request.json['pushToken']
+        logging.error('PASSKIT PUSHTOKEN: {}'.format(pushToken))
+        status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken)
+        if status == 200:
+            return 'Serial number already exists.', 200
+        elif status == 201:
+            return 'Registration successful.', 201
+        else:
+            return 'Bad request.', 400
 
-        # Register device and pass
-        with gds.transaction():
-            tkey = gds.key('pushToken', '{}'.format(pushtoken))
-            tentity = gds.get(tkey)
-            if not tentity:
-                tentity = datastore.Entity(key=tkey)
-                tentity.update({
-                    'pushToken': pushtoken
-                })
-                gds.put(tentity)
-
-        # HACK save serial
-        with gds.transaction():
-            skey = gds.key('serial', '{}'.format(serialNumber))
-            sentity = gds.get(skey)
-            if not sentity:
-                sentity = datastore.Entity(key=skey)
-                sentity.update({
-                    'serial': serialNumber
-                })
-                gds.put(sentity)
-
-        # Registration suceeds
-        return make_response('Successful registration!', 201)
-
+    # Unregister
     else: #request.method == 'DELETE'
-
-        with gds.transaction():
-            tkey = gds.key('pushToken', '{}'.format(pushtoken))
-            gds.delete(tkey)
-
-        # Unregister pass
-        return make_response('Successful unregistration!', 200)
-
-    pass
+        status = passkit.unregister_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber)
+        if status == 200:
+            return 'Unregistration successful.', 200
+        else:
+            return 'Bad request.', 400
 
 
 @app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
           'registrations/<passTypeIdentifier>', methods=['GET'])
-def get_device_serials(version, deviceLibraryIdentifier, passTypeIdentifier):
+def get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier):
 
-    # Retrieve serial
-    query = gds.query(kind='serial')
-    results = [
-        '{serial}'.format(**x)
-        for x in query.fetch(limit=5)
-    ]
-    logging.error('QUERY SERIAL: {}'.format(', '.join(results)))
-    serial = results[0]
+    updatedSinceTag = request.args.get('passesUpdatedSince')
+    payload, status = passkit.get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag)
 
-    tag = request.args.get('passesUpdatedSince')
-    resp = json.dumps({'lastUpdated': '{}'.format(uuid4().hex), 'serialNumbers': ['{}'.format(serial)]})
-
-    return Response(response=resp, status=200, mimetype='application/json')
+    if status == 200:
+        return payload, 200, {'Content-Type': 'application/json'}
+    elif status == 204:
+        return 'No matching passes.', 204
+    else:
+        return 'Bad request.', 400
 
 
 @app.route('/passkit/<version>/passes/<passTypeIdentifier>/<serialNumber>', methods=['GET'])
-def get_latest_pass(version, passTypeIdentifier, serialNumber):
+def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
+
+    authTitle, authToken = request.headers['Authorization'].split()
+    logging.error('PASSKIT AUTHTOKEN: {}'.format(authToken))
+
+    # Authenticate
+    if not passkit.authenticate_authtoken(authTitle, authToken):
+        return 'Unauthorized request.', 401
 
     # Download new pass
-    newpkpass = StringIO()
-    bucket = gstorage.get_bucket(app.config['PROJECT_ID'])
-    blob = bucket.get_blob('newpass.pkpass')
-    blob.download_to_file(newpkpass)
-    newpkpass.seek(0)
+    newpass_entity, status = passkit.get_updated_pass_for_device(version, passTypeIdentifier, serialNumber)
+    newpkpass = passgen.generate(newpass_entity)
 
-    # resp = make_response(send_file(latestPkpass, mimetype='application/vnd.apple.pkpass'))
-    # resp.status_code = 200
-    # return resp
-    return send_file(newpkpass, mimetype='application/vnd.apple.pkpass')
+    if status == 200:
+        return send_file(newpkpass, mimetype='application/vnd.apple.pkpass')
+    elif status == 304:
+        return 'Pass has not changed.', 304
+    else:
+        return 'Bad request.', 400
 
 @app.route('/passkit/<version>/log', methods=['POST'])
-def log_passkit(version):
+def log(version):
+
+    # Retrieve and log
     logs = request.get_json()['logs']
-    logging.error('PASSKIT LOG: '.format(logs))
-    return Response(response=json.dumps({'success': True}), status=200, mimetype='application/json')
+    logging.error('PASSKIT LOG {}: '.format(version, logs))
+    return "Recorded logs.", 200
 
 # [END Passkit Support]
 
 
 # [START PUSH NOTIFICATION SUPPORT]
 
-@app.route('/push')
-def push_notification():
+@app.route('/push/<deviceLibraryIdentifier>')
+def push_notification(deviceLibraryIdentifier):
 
     import ssl, OpenSSL
     from OpenSSL._util import lib as OpenSSLlib
@@ -379,23 +191,20 @@ def push_notification():
     push_id = uuid4().hex
 
     # Retrieve pushtoken
-    query = gds.query(kind='pushToken')
-    results = [
-        '{pushToken}'.format(**x)
-        for x in query.fetch(limit=5)
-    ]
-    logging.error('QUERY PUSHTOKEN: {}'.format(', '.join(results)))
-    pushtoken = results[0]
+    key = gds.key('Device', deviceLibraryIdentifier)
+    entity = gds.get(key)
+    if entity:
+        pushtoken = entity['pushToken']
+        logging.error('QUERY PUSHTOKEN: {}'.format(pushtoken))
+    else:
+        logging.error('QUERY PUSHTOKEN NOT FOUND.')
 
     # PASSES MUST BE PROCESSED BY THE PRODUCTION APNS! NOT DEVELOPMENT!
     client = apns.Client(ssl_context=context, sandbox=False)
     msg = apns.Message(id=push_id)
     msg.payload = json.dumps({})
-    logging.error('PAYLOAD: {}'.format(msg.payload))
     apns_id = client.push(msg, pushtoken)
-    logging.error('MEM TOKEN: {}'.format(pushtoken))
     logging.error('PUSH-id: {}, APNS-id: {}'.format(UUID(push_id), apns_id))
-
 
     return 'Push!\n{}\n{}\n{}\n{}\n'.format(
         OpenSSL.__version__,
@@ -403,6 +212,18 @@ def push_notification():
         ssl._OPENSSL_API_VERSION,
         apns_id
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+@app.route('/pass/update/')
+def update_pass_expiration():
+
+    serialNumber = request.args.get('serialNumber')
+    offerExpiration = request.args.get('offerExpiration')
+    status = passkit.update_pass_expiration(serialNumber, offerExpiration)
+    return '{}\nSuccess: {}'.format(
+        serialNumber,
+        status == 200
+    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
 
 # [END PUSH NOTIFICATION SUPPORT]
 
