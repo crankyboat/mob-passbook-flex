@@ -31,6 +31,7 @@ def load_img(img_url='', img_highres_url=''):
         img_highres_file = StringIO(hreq.read())
     hreq.release_conn()
 
+    # TODO Name preloaded images to avoid conflict
     # Store images to blob stroage
     storage_client = storage.Client(project=current_app.config['PROJECT_ID'])
     bucket = storage_client.get_bucket(current_app.config['PROJECT_ID'])

@@ -30,6 +30,9 @@ class PassGenerator(object):
 
     def generate(self, pass_entity):
 
+        if not pass_entity:
+            return None
+
         # Auth info
         authToken = pass_entity['authToken']
         serialNumber = pass_entity['serialNumber']
@@ -115,6 +118,7 @@ class PassGenerator(object):
             offerimgHR_file = StringIO(hreq.read())
             hreq.release_conn()
             logging.error('PASSGEN IMAGE PRELOAD TimeoutError.')
+
         passfile.addFile('strip.png', offerimg_file)
         passfile.addFile('strip@2x.png', offerimgHR_file)
 

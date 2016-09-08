@@ -25,12 +25,16 @@ from gcloud import storage, datastore
 from uuid import uuid4, UUID
 
 # Push Notification Service
+import ssl
 import apns
+import datetime
+
+# Pass Generation
+import tasks
+from passgen import PassGenerator
 
 # Passkit Web Service
-import tasks
 from passkit import PasskitWebService
-from passgen import PassGenerator
 
 
 app = Flask(__name__)
@@ -183,10 +187,6 @@ def log(version):
 @app.route('/push/<deviceLibraryIdentifier>')
 def push_notification(deviceLibraryIdentifier):
 
-    import ssl
-    import OpenSSL
-    from OpenSSL._util import lib as OpenSSLlib
-
     if apns.make_ssl_context:
         get_context = apns.make_ssl_context
     else:
@@ -212,17 +212,15 @@ def push_notification(deviceLibraryIdentifier):
 
     # PASSES MUST BE PROCESSED BY THE PRODUCTION APNS! NOT DEVELOPMENT!
     apns_client = apns.Client(ssl_context=context, sandbox=False)
-    apns_message = apns.Message(id=push_id)
+    apns_message_exp = datetime.datetime(2016, 12, 31)  # HACK
+    apns_message = apns.Message(id=push_id, expiration=apns_message_exp)
     apns_message.payload = {}
     apns_id = apns_client.push(apns_message, apns_token)
     logging.error('APNS SSL CONNECTION.')
     logging.error('PUSH-id: {}'.format(UUID(push_id)))
     logging.error('APNS-id: {}'.format(apns_id))
 
-    return 'Push!\n{}\n{}\n{}\n{}\n{}'.format(
-
-        OpenSSL.__version__,
-        OpenSSLlib.Cryptography_HAS_ALPN,
+    return 'Push!\n{}\n{}\n{}'.format(
         ssl._OPENSSL_API_VERSION,
         apns_id,
         apns_token
@@ -232,12 +230,11 @@ def push_notification(deviceLibraryIdentifier):
 @app.route('/pass/update')
 def update_pass_expiration():
 
-    serialNumber = request.args.get('serialNumber')
-    offerExpiration = request.args.get('offerExpiration')
-    status = passkit.update_pass_expiration(serialNumber, offerExpiration)
+    status = passkit.update_pass_expiration(request.args.get('serialNumber'),
+                                            request.args.get('offerExpiration'))
 
-    return '{}\nSuccess: {}'.format(
-        serialNumber,
+    return 'Serial: {}\nSuccess: {}'.format(
+        request.args.get('serialNumber'),
         status == 200
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
@@ -245,19 +242,10 @@ def update_pass_expiration():
 @app.route('/pass/list')
 def list_passes():
 
-    results = passkit.list_passes()
+    # List passes with their associated deviceLibraryIdentifier (many-to-one)
+    results = passkit.list_passes_with_devicelibid()
 
-    return '(SerialNumber, OfferExpiration, Timestamp)\n{}'.format(
-        '\n'.join(results)
-    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
-
-
-@app.route(('/device/list'))
-def list_devices():
-
-    results = passkit.list_devices()
-
-    return '(DeviceLibraryId, PushToken)\n{}'.format(
+    return '(SerialNumber, OfferExpiration, Timestamp, DeviceLibraryId)\n{}'.format(
         '\n'.join(results)
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
 

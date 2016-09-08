@@ -284,23 +284,33 @@ class PasskitWebService(object):
                 return 400
 
 
-    def list_passes(self):
+    def list_passes_with_devicelibid(self):
 
-        query = self.gds.query(kind='Passes')
-        results = [
-            '{serialNumber}, {offerExpiration}, {lastUpdated}'.format(**q)
-            for q in query.fetch()
+        pass_query = self.gds.query(kind='Passes')
+        passes = list(pass_query.fetch())
+        pass_results = [
+            '{serialNumber}, {offerExpiration}, {lastUpdated}'.format(**p)
+            for p in passes
         ]
-        return results
 
+        regist_results = []
+        for p in passes:
 
-    def list_devices(self):
+            regist_query = self.gds.query(kind='RegistrationPassType')
+            regist_query.add_filter('serialNumbers', '=', p['serialNumber'])
+            registrations = list(regist_query.fetch())
 
-        query = self.gds.query(kind='Device')
+            assert len(registrations) == 1
+
+            regist_results += [registrations[0]['deviceLibraryIdentifier']]
+
+        assert len(pass_results) == len(regist_results)
+
         results = [
-            '{deviceLibraryIdentifier}, {pushToken}'.format(**q)
-            for q in query.fetch()
+            '{}, {}'.format(p, r)
+            for p, r in zip(pass_results, regist_results)
         ]
+
         return results
 
 
