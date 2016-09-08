@@ -33,7 +33,6 @@ class PassGenerator(object):
         # Auth info
         authToken = pass_entity['authToken']
         serialNumber = pass_entity['serialNumber']
-
         # User info
         uid = pass_entity['uid']
         fname = pass_entity['fname']

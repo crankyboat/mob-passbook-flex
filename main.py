@@ -73,6 +73,7 @@ def send_pass():
                                    request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
                                    request.args.get('offerImage'), request.args.get('offerImageHighRes'),
                                    request.args.get('offerText'), request.args.get('offerExpiration'))
+
     logging.error('PASS SERIAL: {}'.format(pass_serial))
 
     # Generate pass file
@@ -219,6 +220,7 @@ def push_notification(deviceLibraryIdentifier):
     logging.error('APNS-id: {}'.format(apns_id))
 
     return 'Push!\n{}\n{}\n{}\n{}\n{}'.format(
+
         OpenSSL.__version__,
         OpenSSLlib.Cryptography_HAS_ALPN,
         ssl._OPENSSL_API_VERSION,
@@ -258,7 +260,6 @@ def list_devices():
     return '(DeviceLibraryId, PushToken)\n{}'.format(
         '\n'.join(results)
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
-
 
 
 # [END PUSH NOTIFICATION SUPPORT]

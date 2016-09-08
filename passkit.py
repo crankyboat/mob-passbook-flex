@@ -13,6 +13,7 @@ from uuid import uuid4
 
 class PasskitWebService(object):
 
+
     def __init__(self, datastoreClient, storageClient):
 
         # Initialize gcloud clients
@@ -35,6 +36,7 @@ class PasskitWebService(object):
 
 
 ### [BEGIN Passkit Web Service Support] ###
+
 
     def register_pass_to_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken):
 
@@ -123,8 +125,8 @@ class PasskitWebService(object):
             # Unregistration succeeds
             return 200
 
-    def get_serials_for_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag):
 
+    def get_serials_for_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag):
 
         # Query registration table
         key = self.gds.key('Registration', deviceLibraryIdentifier,
@@ -172,6 +174,7 @@ class PasskitWebService(object):
         else:
             return None, 204
 
+
     def get_updated_pass_for_device(self, version, passTypeIdentifier, serialNumber):
 
         pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
@@ -208,6 +211,7 @@ class PasskitWebService(object):
 
         return
 
+
     def authenticate_authtoken(self, authTitle, authToken):
 
         # Strong consistency enforced through ancestor query
@@ -218,6 +222,7 @@ class PasskitWebService(object):
         return entity and \
                authTitle == 'ApplePass' and \
                authToken == entity['authToken']
+
 
     def add_pass(self, serialNumber, authToken,
                  uid, fname, lname, zipcode,
@@ -255,12 +260,14 @@ class PasskitWebService(object):
 
         return pass_entity
 
+
     def delete_pass(self, pass_serial):
 
         # WHEN?
         pass_key = self.gds.key('Passes', '{}'.format(pass_serial))
         self.gds.delete(pass_key)
         return
+
 
     def update_pass_expiration(self, serialNumber, offerExpiration):
 
@@ -276,6 +283,7 @@ class PasskitWebService(object):
             else:
                 return 400
 
+
     def list_passes(self):
 
         query = self.gds.query(kind='Passes')
@@ -285,6 +293,7 @@ class PasskitWebService(object):
         ]
         return results
 
+
     def list_devices(self):
 
         query = self.gds.query(kind='Device')
@@ -293,6 +302,7 @@ class PasskitWebService(object):
             for q in query.fetch()
         ]
         return results
+
 
     def get_current_timestamp(self):
 
