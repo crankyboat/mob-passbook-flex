@@ -66,7 +66,7 @@
 
     <!-- ### Start Add to Wallet Section ### -->
     <section id="addToWallet">
-      <a href="pass" class="addToWalletButton"><img src="static/images/add-to-wallet.svg" alt="Add to Wallet"></a>
+      <!--<a href="pass" class="addToWalletButton"><img src="static/images/add-to-wallet.svg" alt="Add to Wallet"></a>-->
     </section>
     <!-- ### End Add to Wallet Section ### -->
 
@@ -144,10 +144,9 @@
     </script>
     <script>
         if (isIphone()) {
-            $('.addToWalletButton').attr('href', 'pass?'+getQueryString());
-        }
-        else {
-            $('.addToWalletButton').remove();
+            var path = 'pass?' + getQueryString()
+            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet.svg" alt="Add to Wallet"></a>'
+            $('#addToWallet').append(component)
         }
     </script>
 
