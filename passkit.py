@@ -8,6 +8,8 @@ try:
 except ImportError:
     import json
 
+# HACK
+from uuid import uuid4
 
 class PasskitWebService(object):
 
@@ -36,89 +38,93 @@ class PasskitWebService(object):
 
     def register_pass_to_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken):
 
-        try:
-            with self.gds.transaction():
+        with self.gds.transaction():
+
+            # Update device table
+            key = self.gds.key('Device', '{}'.format(deviceLibraryIdentifier))
+            entity = self.gds.get(key)
+            if not entity:
+                entity = datastore.Entity(key=key)
+                entity.update({
+                    'deviceLibraryIdentifier': deviceLibraryIdentifier,
+                    'pushToken': pushToken
+                })
+            else:
+                entity['pushToken'] = pushToken
+            self.gds.put(entity)
+
+
+            # Update registration table
+            key = self.gds.key('Registration', '{}'.format(deviceLibraryIdentifier),
+                               'RegistrationPassType', '{}'.format(passTypeIdentifier))
+            entity = self.gds.get(key)
+            if not entity:
+                entity = datastore.Entity(key=key)
+                entity.update({
+                    'deviceLibraryIdentifier': deviceLibraryIdentifier,
+                    'passTypeIdentifier': passTypeIdentifier,
+                    'serialNumbers': [serialNumber]
+                })
+            else:
+                serialNumbers = set(entity['serialNumbers'])
+
+                if serialNumber in serialNumbers:
+                    return 200
+
+                serialNumbers.add(serialNumber)
+                entity['serialNumbers'] = list(serialNumbers)
+            self.gds.put(entity)
+
+            # Registration succeeds
+            return 201
+
+
+    def unregister_pass_to_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
+
+        with self.gds.transaction():
+
+            # Update registration table
+            key = self.gds.key('Registration', '{}'.format(deviceLibraryIdentifier),
+                               'RegistrationPassType', '{}'.format(passTypeIdentifier))
+            entity = self.gds.get(key)
+            if entity:
+
+                serialNumbers = set(entity['serialNumbers'])
+
+                if serialNumber in serialNumbers:
+                    serialNumbers.remove(serialNumber)
+
+                if len(serialNumbers) == 0:
+                    self.gds.delete(key)
+                else:
+                    entity['serialNumbers'] = list(serialNumbers)
+                    self.gds.put(entity)
+
+            # If no more device entries in the registration table
+            parent_key = self.gds.key('Registration', '{}'.format(deviceLibraryIdentifier))
+            query = self.gds.query(kind='RegistrationPassType',
+                                   ancestor=parent_key)
+
+            if len(list(query.fetch())) == 0:
 
                 # Update device table
                 key = self.gds.key('Device', '{}'.format(deviceLibraryIdentifier))
                 entity = self.gds.get(key)
-                if not entity:
-                    entity = datastore.Entity(key=key)
-                    entity.update({
-                        'deviceLibraryIdentifier': deviceLibraryIdentifier,
-                        'pushToken': pushToken
-                    })
-                    self.gds.put(entity)
-
-                # Update registration table
-                key = self.gds.key('Registration', '{}'.format(deviceLibraryIdentifier),
-                                   'RegistrationPassType', '{}'.format(passTypeIdentifier))
-                entity = self.gds.get(key)
-                if not entity:
-                    entity = datastore.Entity(key=key)
-                    entity.update({
-                        'deviceLibraryIdentifier': deviceLibraryIdentifier,
-                        'passTypeIdentifier': passTypeIdentifier,
-                        'serialNumbers': [serialNumber]
-                    })
-                else:
-                    serialNumbers = set(entity['serialNumbers'])
-
-                    if serialNumber in serialNumbers:
-                        return 200
-
-                    serialNumbers.add(serialNumber)
-                    entity['serialNumbers'] = list(serialNumbers)
-                self.gds.put(entity)
-
-                # Registration succeeds
-                return 201
-        except:
-            return 400
-
-    def unregister_pass_to_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
-
-        try:
-            with self.gds.transaction():
-
-                # Update registration table
-                key = self.gds.key('Registration', '{}'.format(deviceLibraryIdentifier),
-                                   'RegistrationPassType', '{}'.format(passTypeIdentifier))
-                entity = self.gds.get(key)
                 if entity:
+                    self.gds.delete(key)
+                logging.error('PASSKIT DEVICE {} DELETED.'.format(deviceLibraryIdentifier))
+            else:
+                results = [
+                    '{}'.format(x)
+                    for x in query.fetch()
+                ]
+                logging.error('PASSKIT DEVICES: {}'.format(', '.join(results)))
 
-                    serialNumbers = set(entity['serialNumbers'])
-
-                    if serialNumber in serialNumbers:
-                        serialNumbers.remove(serialNumber)
-
-                    if len(serialNumbers) == 0:
-                        self.gds.delete(key)
-                    else:
-                        entity['serialNumbers'] = list(serialNumbers)
-                        self.gds.put(entity)
-
-                # If no more device entries in the registration table
-                parent_key = self.gds.key('Registration', '{}'.format(deviceLibraryIdentifier))
-                query = self.gds.query(kind='RegistrationPassType',
-                                       ancestor=parent_key)
-
-                if len(list(query.fetch())) == 0:
-
-                    # Update device table
-                    key = self.gds.key('Device', '{}'.format(deviceLibraryIdentifier))
-                    entity = self.gds.get(key)
-                    if entity:
-                        self.gds.delete(key)
-
-                # Unregistration succeeds
-                return 200
-        except:
-            return 400
+            # Unregistration succeeds
+            return 200
 
     def get_serials_for_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag):
 
-        # try:
 
         # Query registration table
         key = self.gds.key('Registration', deviceLibraryIdentifier,
@@ -157,17 +163,14 @@ class PasskitWebService(object):
             # Yes new serials for the device
             else:
                 return json.dumps({
-                    'lastUpdated': str(now_timestamp),
+                    'lastUpdated': '{}'.format(int(now_timestamp)),
+                    # 'lastUpdated': '{}'.format(uuid4().hex),
                     'serialNumbers': results
                 }), 200
 
         # No serials for the device
         else:
             return None, 204
-        # except:
-        #     import sys
-        #     logging.error('EXCEPT: {}'.format(sys.exc_info()[0]))
-        #     return None, 400
 
     def get_updated_pass_for_device(self, version, passTypeIdentifier, serialNumber):
 
@@ -226,7 +229,7 @@ class PasskitWebService(object):
         pass_entity.update({
 
             # Auth info
-            'serialNumber': serialNumber,
+            'serialNumber': '{}'.format(serialNumber),
             'authToken': authToken,
 
             # User info
@@ -245,6 +248,7 @@ class PasskitWebService(object):
 
             # Timestamp
             'lastUpdated': self.get_current_timestamp()
+            # 'lastUpdated': '{}'.format(uuid4().hex)
 
         })
         self.gds.put(pass_entity)
@@ -260,19 +264,35 @@ class PasskitWebService(object):
 
     def update_pass_expiration(self, serialNumber, offerExpiration):
 
-        try:
-            with self.gds.transaction():
-                pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
-                pass_entity = self.gds.get(pass_key)
-                if pass_entity:
-                    pass_entity['offerExpiration'] = offerExpiration
-                    pass_entity['lastUpdated'] = self.get_current_timestamp()
-                    self.gds.put(pass_entity)
-                    return 200
-                else:
-                    return 400
-        except:
-            return 400
+        with self.gds.transaction():
+            pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
+            pass_entity = self.gds.get(pass_key)
+            if pass_entity:
+                pass_entity['offerExpiration'] = offerExpiration
+                pass_entity['lastUpdated'] = self.get_current_timestamp()
+                # pass_entity['lastUpdated'] = '{}'.format(uuid4().hex)
+                self.gds.put(pass_entity)
+                return 200
+            else:
+                return 400
+
+    def list_passes(self):
+
+        query = self.gds.query(kind='Passes')
+        results = [
+            '{serialNumber}, {offerExpiration}, {lastUpdated}'.format(**q)
+            for q in query.fetch()
+        ]
+        return results
+
+    def list_devices(self):
+
+        query = self.gds.query(kind='Device')
+        results = [
+            '{deviceLibraryIdentifier}, {pushToken}'.format(**q)
+            for q in query.fetch()
+        ]
+        return results
 
     def get_current_timestamp(self):
 

@@ -8,8 +8,10 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+import tasks
+import zipquery
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
-import zipquery, tasks
+from gcloud.exceptions import ClientError
 
 DEFAULT_TIMEZONE = 'US/Pacific'
 DEFAULT_LOGOTEXT = 'SUBWAY'
@@ -31,6 +33,7 @@ class PassGenerator(object):
         # Auth info
         authToken = pass_entity['authToken']
         serialNumber = pass_entity['serialNumber']
+
         # User info
         uid = pass_entity['uid']
         fname = pass_entity['fname']
@@ -43,10 +46,17 @@ class PassGenerator(object):
         offertext = pass_entity['offerText']
         offerexp = pass_entity['offerExpiration']
 
+        logging.error("PASSGEN AUTHTOKEN: {}".format(authToken))
+        logging.error("PASSGEN SERIALNUM: {}".format(serialNumber))
+        logging.error("PASSGEN TEXT: {}".format(offertext))
+        logging.error("PASSGEN EXPIRATION: {}".format(offerexp))
+
         # Context info
-        # storeLocations = zipquery.get_store_from_zip(zipcode)
-        # TEMP PROJECT QUERY EXCEEDED LIMITS
-        storeLocations = []
+        # QUERY MAY EXCEED  PROJECT LIMITS
+        try:
+            storeLocations = zipquery.get_store_from_zip(zipcode)
+        except ClientError:
+            storeLocations = []
 
         # Offer info
         odate = datetime.datetime.strptime(offerexp, "%m/%d/%Y")
@@ -97,7 +107,7 @@ class PassGenerator(object):
         # Retrieve queued image load results
         try:
             offerimg_file, offerimgHR_file = tasks.get_img()
-            logging.error('IMAGE PRELOAD Success.')
+            logging.error('PASSGEN IMAGE PRELOAD Success.')
         except:
             http = urllib3.PoolManager()
             hreq = http.request('GET', offerimg, preload_content=False)
@@ -105,7 +115,7 @@ class PassGenerator(object):
             hreq = http.request('GET', offerimgHR, preload_content=False)
             offerimgHR_file = StringIO(hreq.read())
             hreq.release_conn()
-            logging.error('IMAGE PRELOAD TimeoutError.')
+            logging.error('PASSGEN IMAGE PRELOAD TimeoutError.')
         passfile.addFile('strip.png', offerimg_file)
         passfile.addFile('strip@2x.png', offerimgHR_file)
 

@@ -28,9 +28,9 @@ from uuid import uuid4, UUID
 import apns
 
 # Passkit Web Service
+import tasks
 from passkit import PasskitWebService
 from passgen import PassGenerator
-import tasks
 
 
 app = Flask(__name__)
@@ -73,7 +73,7 @@ def send_pass():
                                    request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
                                    request.args.get('offerImage'), request.args.get('offerImageHighRes'),
                                    request.args.get('offerText'), request.args.get('offerExpiration'))
-    logging.error('SERIAL: {}'.format(pass_serial))
+    logging.error('PASS SERIAL: {}'.format(pass_serial))
 
     # Generate pass file
     pkpass = passgen.generate(pass_entity)
@@ -101,6 +101,9 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
         pushToken = request.json['pushToken']
         logging.error('PASSKIT PUSHTOKEN: {}'.format(pushToken))
         status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken)
+
+        logging.error('/PASSKIT/REGIST STATUS: {}'.format(status))
+
         if status == 200:
             return 'Serial number already exists.', 200
         elif status == 201:
@@ -111,6 +114,9 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
     # Unregister
     else: #request.method == 'DELETE'
         status = passkit.unregister_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber)
+
+        logging.error('/PASSKIT/UNREGIST STATUS: {}'.format(status))
+
         if status == 200:
             return 'Unregistration successful.', 200
         else:
@@ -123,6 +129,8 @@ def get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier)
 
     updatedSinceTag = request.args.get('passesUpdatedSince')
     payload, status = passkit.get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag)
+
+    logging.error('/PASSKIT/GETSERIAL STATUS: {}'.format(status))
 
     if status == 200:
         return payload, 200, {'Content-Type': 'application/json'}
@@ -146,6 +154,8 @@ def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
     newpass_entity, status = passkit.get_updated_pass_for_device(version, passTypeIdentifier, serialNumber)
     newpkpass = passgen.generate(newpass_entity)
 
+    logging.error('/PASSKIT/GETUPDATE STATUS: {}'.format(status))
+
     if status == 200:
         return send_file(newpkpass, mimetype='application/vnd.apple.pkpass')
     elif status == 304:
@@ -157,9 +167,12 @@ def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
 def log(version):
 
     # Retrieve and log
-    logs = request.get_json()['logs']
-    logging.error('PASSKIT LOG {}: '.format(version, logs))
-    return "Recorded logs.", 200
+    logs = request.json['logs']
+    logging.error('PASSKIT LOG: {}'.format(logs))
+
+    return json.dumps({
+        'logs': logs
+    }), 200, {'Content-Type': 'application/json'}
 
 # [END Passkit Support]
 
@@ -169,18 +182,14 @@ def log(version):
 @app.route('/push/<deviceLibraryIdentifier>')
 def push_notification(deviceLibraryIdentifier):
 
-    import ssl, OpenSSL
+    import ssl
+    import OpenSSL
     from OpenSSL._util import lib as OpenSSLlib
-    logging.error('OpenSSL version: {}'.format(OpenSSL.__version__))
-    logging.error('OpenSSL lib has ALPN: {}'.format(OpenSSLlib.Cryptography_HAS_ALPN)) #The test that failed on GAE
-    logging.error('SSL openssl version: {}'.format(ssl._OPENSSL_API_VERSION))
-    logging.error('SSL has ALPN: {}'.format(hasattr(ssl, 'HAS_ALPN')))
 
     if apns.make_ssl_context:
         get_context = apns.make_ssl_context
     else:
         get_context = apns.make_ossl_context
-    logging.error('APNS3 SSL context version: {}'.format(get_context))
 
     # Connect
     context = get_context(
@@ -190,39 +199,66 @@ def push_notification(deviceLibraryIdentifier):
     )
     push_id = uuid4().hex
 
-    # Retrieve pushtoken
+    # Retrieve push token
     key = gds.key('Device', deviceLibraryIdentifier)
     entity = gds.get(key)
     if entity:
-        pushtoken = entity['pushToken']
-        logging.error('QUERY PUSHTOKEN: {}'.format(pushtoken))
+        apns_token = entity['pushToken']
+        logging.error('APNS PUSHTOKEN: {}'.format(apns_token))
     else:
-        logging.error('QUERY PUSHTOKEN NOT FOUND.')
+        apns_token = ''
+        logging.error('APNS PUSHTOKEN NOT FOUND.')
 
     # PASSES MUST BE PROCESSED BY THE PRODUCTION APNS! NOT DEVELOPMENT!
-    client = apns.Client(ssl_context=context, sandbox=False)
-    msg = apns.Message(id=push_id)
-    msg.payload = json.dumps({})
-    apns_id = client.push(msg, pushtoken)
-    logging.error('PUSH-id: {}, APNS-id: {}'.format(UUID(push_id), apns_id))
+    apns_client = apns.Client(ssl_context=context, sandbox=False)
+    apns_message = apns.Message(id=push_id)
+    apns_message.payload = {}
+    apns_id = apns_client.push(apns_message, apns_token)
+    logging.error('APNS SSL CONNECTION.')
+    logging.error('PUSH-id: {}'.format(UUID(push_id)))
+    logging.error('APNS-id: {}'.format(apns_id))
 
-    return 'Push!\n{}\n{}\n{}\n{}\n'.format(
+    return 'Push!\n{}\n{}\n{}\n{}\n{}'.format(
         OpenSSL.__version__,
         OpenSSLlib.Cryptography_HAS_ALPN,
         ssl._OPENSSL_API_VERSION,
-        apns_id
+        apns_id,
+        apns_token
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
-@app.route('/pass/update/')
+
+@app.route('/pass/update')
 def update_pass_expiration():
 
     serialNumber = request.args.get('serialNumber')
     offerExpiration = request.args.get('offerExpiration')
     status = passkit.update_pass_expiration(serialNumber, offerExpiration)
+
     return '{}\nSuccess: {}'.format(
         serialNumber,
         status == 200
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+@app.route('/pass/list')
+def list_passes():
+
+    results = passkit.list_passes()
+
+    return '(SerialNumber, OfferExpiration, Timestamp)\n{}'.format(
+        '\n'.join(results)
+    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+@app.route(('/device/list'))
+def list_devices():
+
+    results = passkit.list_devices()
+
+    return '(DeviceLibraryId, PushToken)\n{}'.format(
+        '\n'.join(results)
+    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
 
 
 # [END PUSH NOTIFICATION SUPPORT]
