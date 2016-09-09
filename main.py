@@ -25,9 +25,7 @@ from gcloud import storage, datastore
 from uuid import uuid4, UUID
 
 # Push Notification Service
-import ssl
-import apns
-import datetime
+import push
 
 # Pass Generation
 import tasks
@@ -46,10 +44,8 @@ passkit = PasskitWebService(datastoreClient=gds,
 passgen = PassGenerator()
 
 
-# [START imgload_queue]
 with app.app_context():
     imgload_queue = tasks.get_imgload_queue()
-# [END imgload_queue]
 
 
 @app.route('/')
@@ -107,7 +103,7 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
     if request.method == 'POST':
         pushToken = request.json['pushToken']
         logging.error('PASSKIT PUSHTOKEN: {}'.format(pushToken))
-        status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken)
+        status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken, authTitle)
 
         logging.error('/PASSKIT/REGIST STATUS: {}'.format(status))
 
@@ -187,89 +183,17 @@ def log(version):
 
 
 # [START PUSH NOTIFICATION SUPPORT]
-
 @app.route('/push/<deviceLibraryIdentifier>')
 def push_notification(deviceLibraryIdentifier):
 
-    if apns.make_ssl_context:
-        get_context = apns.make_ssl_context
+    pushToken, platform = passkit.get_device_info(deviceLibraryIdentifier)
+
+    if platform == 'Apple':
+        return push.push_notification_apple(pushToken), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    elif platform == 'Android':
+        return push.push_notification_android(pushToken), 200, {'Content-Type': 'text/plain; charset=utf-8'}
     else:
-        get_context = apns.make_ossl_context
-
-    # Connect
-    context = get_context(
-        certfile='static/cert/certificate.pem',
-        keyfile='static/cert/key.pem',
-        password=''
-    )
-    push_id = uuid4().hex
-
-    # Retrieve push token
-    key = gds.key('Device', deviceLibraryIdentifier)
-    entity = gds.get(key)
-    if entity:
-        apns_token = entity['pushToken']
-        logging.error('APNS PUSHTOKEN: {}'.format(apns_token))
-    else:
-        apns_token = ''
-        logging.error('APNS PUSHTOKEN NOT FOUND.')
-
-    # PASSES MUST BE PROCESSED BY THE PRODUCTION APNS! NOT DEVELOPMENT!
-    apns_client = apns.Client(ssl_context=context, sandbox=False)
-    apns_message_exp = datetime.datetime(2016, 12, 31)  # HACK
-    apns_message = apns.Message(id=push_id, expiration=apns_message_exp)
-    apns_message.payload = {}
-    apns_id = apns_client.push(apns_message, apns_token)
-    logging.error('APNS SSL CONNECTION.')
-    logging.error('PUSH-id: {}'.format(UUID(push_id)))
-    logging.error('APNS-id: {}'.format(apns_id))
-
-    return 'Push!\n{}\n{}\n{}'.format(
-        ssl._OPENSSL_API_VERSION,
-        apns_id,
-        apns_token
-    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
-
-
-@app.route('/push/android/<deviceLibraryIdentifier>')
-def push_notification_android(deviceLibraryIdentifier):
-
-    # Retrieve push token
-    key = gds.key('Device', deviceLibraryIdentifier)
-    entity = gds.get(key)
-    if entity:
-        apns_token = entity['pushToken']
-        logging.error('APNS PUSHTOKEN: {}'.format(apns_token))
-    else:
-        apns_token = ''
-        logging.error('APNS PUSHTOKEN NOT FOUND.')
-
-    # HACK Retrieve passType
-    passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
-    walletPassApiKey = '5d2c8fb3e1e34dab898fe14a24f0cef0'
-
-    # Post a request to WalletPass API
-    import urllib3
-    http = urllib3.PoolManager()
-
-    push_message_encoded = json.dumps({
-        'passTypeIdentifier': '{}'.format(passTypeIdentifier),
-        'pushTokens': ['{}'.format(apns_token)]
-    }).encode('utf-8')
-
-    hreq = http.request(
-        method='POST',
-        url='https://walletpasses.appspot.com/api/v1/push',
-        body=push_message_encoded,
-        headers={'Content-Type': 'application/json',
-                 'Authorization': '{}'.format(walletPassApiKey)}
-    )
-    logging.error('PUSH ANDROID: {}, {}'.format(hreq.status, hreq.data))
-
-    return 'Push Android!\n{}, {}'.format(
-        hreq.status,
-        hreq.data
-    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+        return 'Bad request.', 400
 
 
 @app.route('/pass/update')
@@ -299,11 +223,8 @@ def redeem_pass():
 def list_passes():
 
     # List passes with their associated deviceLibraryIdentifier (many-to-one)
-    results = passkit.list_passes_with_devicelibid()
-
-    return '(SerialNumber, OfferExpiration, Timestamp, DeviceLibraryId)\n{}'.format(
-        '\n'.join(results)
-    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    return passkit.list_passes_with_devicelibid(), \
+           200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
 # [END PUSH NOTIFICATION SUPPORT]

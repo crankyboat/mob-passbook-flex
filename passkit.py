@@ -21,7 +21,7 @@ class PasskitWebService(object):
 
         ### Device table ###
         # key = ('Device', 'deviceLibraryIdentifier')
-        # fields = {'deviceLibraryIdentifier', 'pushToken'}
+        # fields = {'deviceLibraryIdentifier', 'pushToken', 'platform:{Apple|Android}'}
 
         ### Passes table ###
         # key = ('Passes', 'serialNumber')
@@ -35,7 +35,7 @@ class PasskitWebService(object):
 ### [BEGIN Passkit Web Service Support] ###
 
 
-    def register_pass_to_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken):
+    def register_pass_to_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken, authTitle):
 
         with self.gds.transaction():
 
@@ -46,10 +46,12 @@ class PasskitWebService(object):
                 entity = datastore.Entity(key=key)
                 entity.update({
                     'deviceLibraryIdentifier': deviceLibraryIdentifier,
-                    'pushToken': pushToken
+                    'pushToken': pushToken,
+                    'platform': authTitle.split('Pass')[0]
                 })
             else:
                 entity['pushToken'] = pushToken
+                entity['platform'] = authTitle.split('Pass')[0]
             self.gds.put(entity)
 
 
@@ -320,6 +322,7 @@ class PasskitWebService(object):
     def list_passes_with_devicelibid(self):
 
         pass_query = self.gds.query(kind='Passes')
+        pass_query.order = ['lastUpdated']
         passes = list(pass_query.fetch())
 
         pass_results = []
@@ -333,7 +336,7 @@ class PasskitWebService(object):
             assert len(registrations) <= 1
 
             if len(registrations) > 0:
-                pass_results += ['{serialNumber}, {offerExpiration}, {lastUpdated}'.format(**p)]
+                pass_results += ['{lastUpdated}, {serialNumber}, {offerExpiration}, {redeemed}'.format(**p)]
                 regist_results += [registrations[0]['deviceLibraryIdentifier']]
 
         assert len(pass_results) == len(regist_results)
@@ -343,7 +346,17 @@ class PasskitWebService(object):
             for p, r in zip(pass_results, regist_results)
         ]
 
-        return results
+        return '(Timestamp, SerialNumber, OfferExpiration, Redeemed, DeviceLibraryId)\n{}'.format('\n'.join(results))
+
+
+    def get_device_info(self, deviceLibraryIdentifier):
+
+        key = self.gds.key('Device', '{}'.format(deviceLibraryIdentifier))
+        entity = self.gds.get(key)
+        if entity:
+            return entity['pushToken'], entity['platform']
+        else:
+            return None, None
 
 
     def get_current_timestamp(self):
