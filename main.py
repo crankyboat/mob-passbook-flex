@@ -83,6 +83,8 @@ def send_pass():
     # Generate pass file
     pkpass = passgen.generate(pass_entity)
 
+    # TODO If unsuccessful should remove pass_entity
+
     # Send pass file
     return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
 
@@ -154,6 +156,8 @@ def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
     # Authenticate
     if not passkit.authenticate_authtoken(authTitle, authToken):
         return 'Unauthorized request.', 401
+
+    # TODO Add 'last-modified' header
 
     # Download new pass
     newpass_entity, status = passkit.get_updated_pass_for_device(version, passTypeIdentifier, serialNumber)
@@ -232,6 +236,17 @@ def update_pass_expiration():
 
     status = passkit.update_pass_expiration(request.args.get('serialNumber'),
                                             request.args.get('offerExpiration'))
+
+    return 'Serial: {}\nSuccess: {}'.format(
+        request.args.get('serialNumber'),
+        status == 200
+    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+@app.route('/pass/redeem')
+def redeem_pass():
+
+    status = passkit.redeem_pass(request.args.get('serialNumber'))
 
     return 'Serial: {}\nSuccess: {}'.format(
         request.args.get('serialNumber'),

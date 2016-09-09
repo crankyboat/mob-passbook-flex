@@ -47,6 +47,8 @@ class PassGenerator(object):
         offerimgHR = pass_entity['offerImageHighRes']
         offertext = pass_entity['offerText']
         offerexp = pass_entity['offerExpiration']
+        # Redeem info
+        redeemed = pass_entity['redeemed']
 
         logging.error("PASSGEN AUTHTOKEN: {}".format(authToken))
         logging.error("PASSGEN SERIALNUM: {}".format(serialNumber))
@@ -72,8 +74,13 @@ class PassGenerator(object):
         cardInfo = Coupon()
         cardInfo.addPrimaryField('offer', '', '')  # Text on strip image
         cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES',
-                                   type='Date',
-                                   changeMessage='Coupon updated to expire on %@')
+                                   changeMessage='Coupon updated to expire on %@',
+                                   type='Date')
+        # HACK to support push notification when redeemed
+        # Change value from <space> to <empty> when redeemed
+        redeemed_field = '\t' if not redeemed else ' '
+        cardInfo.addAuxiliaryField('redeemed', redeemed_field, '',
+                                   changeMessage='Coupon has been redeemed.%@')
 
         # Create pass object
         passfile = Pass(cardInfo,
@@ -93,7 +100,7 @@ class PassGenerator(object):
             passfile.addLocation(lat, lng, 'Store nearby.')
         now_utc = datetime.datetime.now(timezone('UTC'))
         pass_utc = offerexpdt_obj.astimezone(timezone('UTC'))
-        passfile.voided = (now_utc == pass_utc)
+        passfile.voided = True if redeemed else (now_utc == pass_utc)
         passfile.expirationDate = offerexpdt
         logging.info(now_utc.isoformat(' '))
         logging.info(pass_utc.isoformat(' '))

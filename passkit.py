@@ -8,9 +8,6 @@ try:
 except ImportError:
     import json
 
-# HACK
-from uuid import uuid4
-
 class PasskitWebService(object):
 
 
@@ -117,13 +114,35 @@ class PasskitWebService(object):
                 logging.error('PASSKIT DEVICE {} DELETED.'.format(deviceLibraryIdentifier))
             else:
                 results = [
-                    '{}'.format(x)
-                    for x in query.fetch()
+                    '{}'.format(q)
+                    for q in query.fetch()
                 ]
                 logging.error('PASSKIT DEVICES: {}'.format(', '.join(results)))
 
-            # Unregistration succeeds
-            return 200
+
+        # HACK for 400 queries inside transactions must have ancestors
+        # If no more pass entries in the registration table
+        query = self.gds.query(kind='RegistrationPassType')
+        query.add_filter('serialNumbers', '=', serialNumber)
+
+        if len(list(query.fetch())) == 0:
+
+            # Update pass table
+            key = self.gds.key('Passes', '{}'.format(serialNumber))
+            entity = self.gds.get(key)
+            if entity:
+                self.gds.delete(key)
+            logging.error('PASSKIT PASS {} DELETED.'.format(serialNumber))
+        else:
+            results = [
+                '{serialNumber}'.format(**q)
+                for q in query.fetch()
+            ]
+            logging.error('PASSKIT PASSES: {}'.format(', '.join(results)))
+
+
+        # Unregistration succeeds
+        return 200
 
 
     def get_serials_for_device(self, version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag):
@@ -166,7 +185,6 @@ class PasskitWebService(object):
             else:
                 return json.dumps({
                     'lastUpdated': '{}'.format(int(now_timestamp)),
-                    # 'lastUpdated': '{}'.format(uuid4().hex),
                     'serialNumbers': results
                 }), 200
 
@@ -252,8 +270,10 @@ class PasskitWebService(object):
             'offerExpiration': offerExpiration,
 
             # Timestamp
-            'lastUpdated': self.get_current_timestamp()
-            # 'lastUpdated': '{}'.format(uuid4().hex)
+            'lastUpdated': self.get_current_timestamp(),
+
+            # Redemption
+            'redeemed': False
 
         })
         self.gds.put(pass_entity)
@@ -277,7 +297,20 @@ class PasskitWebService(object):
             if pass_entity:
                 pass_entity['offerExpiration'] = offerExpiration
                 pass_entity['lastUpdated'] = self.get_current_timestamp()
-                # pass_entity['lastUpdated'] = '{}'.format(uuid4().hex)
+                self.gds.put(pass_entity)
+                return 200
+            else:
+                return 400
+
+
+    def redeem_pass(self, serialNumber):
+
+        with self.gds.transaction():
+            pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
+            pass_entity = self.gds.get(pass_key)
+            if pass_entity:
+                pass_entity['redeemed'] = True
+                pass_entity['lastUpdated'] = self.get_current_timestamp()
                 self.gds.put(pass_entity)
                 return 200
             else:
@@ -288,11 +321,8 @@ class PasskitWebService(object):
 
         pass_query = self.gds.query(kind='Passes')
         passes = list(pass_query.fetch())
-        pass_results = [
-            '{serialNumber}, {offerExpiration}, {lastUpdated}'.format(**p)
-            for p in passes
-        ]
 
+        pass_results = []
         regist_results = []
         for p in passes:
 
@@ -300,9 +330,11 @@ class PasskitWebService(object):
             regist_query.add_filter('serialNumbers', '=', p['serialNumber'])
             registrations = list(regist_query.fetch())
 
-            assert len(registrations) == 1
+            assert len(registrations) <= 1
 
-            regist_results += [registrations[0]['deviceLibraryIdentifier']]
+            if len(registrations) > 0:
+                pass_results += ['{serialNumber}, {offerExpiration}, {lastUpdated}'.format(**p)]
+                regist_results += [registrations[0]['deviceLibraryIdentifier']]
 
         assert len(pass_results) == len(regist_results)
 
