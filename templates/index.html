@@ -132,6 +132,12 @@
                 (navigator.platform.indexOf("iPod") != -1)
             );
         }
+        function isAndroid() {
+            return (
+                (navigator.platform.indexOf("Android") != -1) ||
+                (navigator.userAgent.toLowerCase().indexOf("android") != -1)
+            );
+        }
     </script>
     <!-- ### End Query String Script ### -->
     <script>
@@ -146,6 +152,12 @@
         if (isIphone()) {
             var path = 'pass?' + getQueryString()
             var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet.svg" alt="Add to Wallet"></a>'
+            $('#addToWallet').append(component)
+        }
+        else if (isAndroid()) {
+            var encodedQueryString = encodeURIComponent(getQueryString())
+            var path = 'https://walletpass.io?u=' + 'https%3A%2F%2Fmobivitypassbook-staging.appspot.com%2Fpass%3F' + encodedQueryString
+            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet-android.png" alt="Add to Wallet"></a>'
             $('#addToWallet').append(component)
         }
     </script>

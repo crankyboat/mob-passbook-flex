@@ -238,8 +238,8 @@ class PasskitWebService(object):
         entity = self.gds.get(key)
 
         return entity and \
-               authTitle == 'ApplePass' and \
-               authToken == entity['authToken']
+               authToken == entity['authToken'] and \
+               (authTitle == 'ApplePass' or authTitle == 'AndroidPass')
 
 
     def add_pass(self, serialNumber, authToken,

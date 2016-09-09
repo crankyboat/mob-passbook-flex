@@ -231,6 +231,47 @@ def push_notification(deviceLibraryIdentifier):
     ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
+@app.route('/push/android/<deviceLibraryIdentifier>')
+def push_notification_android(deviceLibraryIdentifier):
+
+    # Retrieve push token
+    key = gds.key('Device', deviceLibraryIdentifier)
+    entity = gds.get(key)
+    if entity:
+        apns_token = entity['pushToken']
+        logging.error('APNS PUSHTOKEN: {}'.format(apns_token))
+    else:
+        apns_token = ''
+        logging.error('APNS PUSHTOKEN NOT FOUND.')
+
+    # HACK Retrieve passType
+    passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
+    walletPassApiKey = '5d2c8fb3e1e34dab898fe14a24f0cef0'
+
+    # Post a request to WalletPass API
+    import urllib3
+    http = urllib3.PoolManager()
+
+    push_message_encoded = json.dumps({
+        'passTypeIdentifier': '{}'.format(passTypeIdentifier),
+        'pushTokens': ['{}'.format(apns_token)]
+    }).encode('utf-8')
+
+    hreq = http.request(
+        method='POST',
+        url='https://walletpasses.appspot.com/api/v1/push',
+        body=push_message_encoded,
+        headers={'Content-Type': 'application/json',
+                 'Authorization': '{}'.format(walletPassApiKey)}
+    )
+    logging.error('PUSH ANDROID: {}, {}'.format(hreq.status, hreq.data))
+
+    return 'Push Android!\n{}, {}'.format(
+        hreq.status,
+        hreq.data
+    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
 @app.route('/pass/update')
 def update_pass_expiration():
 
