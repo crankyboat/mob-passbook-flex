@@ -37,8 +37,8 @@ def push_notification_apple(pushToken):
 
     return 'Push iOS!\n' \
            'Openssl: {}\n' \
-           'Push token:{}\n' \
-           'APNS id:{}'.format(ssl._OPENSSL_API_VERSION, pushToken, apns_id)
+           'Push token: {}\n' \
+           'APNS id: {}'.format(ssl._OPENSSL_API_VERSION, pushToken, apns_id)
 
 
 def push_notification_android(pushToken):
@@ -65,6 +65,6 @@ def push_notification_android(pushToken):
     logging.error('PUSH ANDROID: {}, {}'.format(hreq.status, hreq.data))
 
     return 'Push Android!\n' \
-           'Push token:{}\n' \
+           'Push token: {}\n' \
            'Status: {}\n' \
            'Response: {}'.format(pushToken, hreq.status, hreq.data)

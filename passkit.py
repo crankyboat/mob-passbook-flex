@@ -1,4 +1,5 @@
 import logging
+import calendar
 import datetime
 import time
 from pytz import timezone
@@ -122,25 +123,37 @@ class PasskitWebService(object):
                 logging.error('PASSKIT DEVICES: {}'.format(', '.join(results)))
 
 
-        # HACK for 400 queries inside transactions must have ancestors
-        # If no more pass entries in the registration table
-        query = self.gds.query(kind='RegistrationPassType')
-        query.add_filter('serialNumbers', '=', serialNumber)
+            # TODO HACK Don't EVER delete passes
+            # Passes being deleted as it is unsubscribed messed up resubscription
 
-        if len(list(query.fetch())) == 0:
+            # # HACK ALWAYS delete a pass on unregistration (assume one-to-one relationship)
+            # # Update pass table
+            # key = self.gds.key('Passes', '{}'.format(serialNumber))
+            # entity = self.gds.get(key)
+            # if entity:
+            #     self.gds.delete(key)
+            #     logging.error('PASSKIT PASS {} DELETED.'.format(serialNumber))
 
-            # Update pass table
-            key = self.gds.key('Passes', '{}'.format(serialNumber))
-            entity = self.gds.get(key)
-            if entity:
-                self.gds.delete(key)
-            logging.error('PASSKIT PASS {} DELETED.'.format(serialNumber))
-        else:
-            results = [
-                '{serialNumber}'.format(**q)
-                for q in query.fetch()
-            ]
-            logging.error('PASSKIT PASSES: {}'.format(', '.join(results)))
+
+        # # HACK for 400 queries inside transactions must have ancestors
+        # # If no more pass entries in the registration table
+        # query = self.gds.query(kind='RegistrationPassType')
+        # query.add_filter('serialNumbers', '=', serialNumber)
+        #
+        # if len(list(query.fetch())) == 0:
+        #
+        #     # Update pass table
+        #     key = self.gds.key('Passes', '{}'.format(serialNumber))
+        #     entity = self.gds.get(key)
+        #     if entity:
+        #         self.gds.delete(key)
+        #     logging.error('PASSKIT PASS {} DELETED.'.format(serialNumber))
+        # else:
+        #     results = [
+        #         '{serialNumber}'.format(**q)
+        #         for q in query.fetch()
+        #     ]
+        #     logging.error('PASSKIT PASSES: {}'.format(', '.join(results)))
 
 
         # Unregistration succeeds
@@ -161,7 +174,6 @@ class PasskitWebService(object):
             now_timestamp = self.get_current_timestamp()
 
             assert len(serialNumbers) > 0
-            assert isinstance(now_timestamp, float)
 
             # Query passes table
             if not updatedSinceTag:
@@ -172,7 +184,8 @@ class PasskitWebService(object):
             else:
 
                 # Return only serials with a newer tag
-                updatedSince = float(updatedSinceTag)
+                updatedSince = int(updatedSinceTag)
+                # updatedSince = float(updatedSinceTag)
                 query = self.gds.query(kind='Passes')
                 query.add_filter('lastUpdated', '>', updatedSince)
                 results = [
@@ -195,7 +208,7 @@ class PasskitWebService(object):
             return None, 204
 
 
-    def get_updated_pass_for_device(self, version, passTypeIdentifier, serialNumber):
+    def get_updated_pass_for_device(self, version, passTypeIdentifier, serialNumber, modifiedSince):
 
         pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
         pass_entity = self.gds.get(pass_key)
@@ -204,9 +217,15 @@ class PasskitWebService(object):
         # Currently passtype not stored
         # passTypeIdentifier == pass_entity['passTypeIdentifier']
         if pass_entity:
-            return pass_entity, 200
+            # return pass_entity, 200
 
-        return None, 400
+            if modifiedSince and pass_entity['lastUpdated'] <= modifiedSince:
+                return None, 304
+            else:
+                return pass_entity, 200
+
+        else:
+            return None, 400
 
 
 ### [END Passkit Web Service Support] ###
@@ -248,6 +267,7 @@ class PasskitWebService(object):
                  uid, fname, lname, zipcode,
                  offerImage, offerImageHighRes,
                  offerText, offerExpiration):
+
 
         pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
         pass_entity = datastore.Entity(key=pass_key)
@@ -363,6 +383,25 @@ class PasskitWebService(object):
 
         # Generate current timestamp
         now_utc = datetime.datetime.now(timezone('UTC'))
-        now_timestamp = time.mktime(now_utc.timetuple())
+        now_timestamp = calendar.timegm(now_utc.timetuple())
+        return now_timestamp
+        # now_timestamp = time.mktime(now_utc.timetuple())
 
-        return  now_timestamp
+
+    def get_timestamp_from_http_dt(self, http_dt):
+
+        if not http_dt:
+            return None
+
+        http_dt = http_dt.replace('GMT', 'UTC')
+        dt = datetime.datetime.strptime(http_dt, '%a, %d %b %Y %H:%M:%S %Z')
+        dt = timezone('UTC').localize(dt)
+        timestamp = calendar.timegm(dt.timetuple())
+        return timestamp
+
+
+    def get_http_dt_from_timestamp(self, timestamp):
+
+        dt = time.gmtime(timestamp)
+        dt_str = time.strftime('%a, %d %b %Y %H:%M:%S GMT', dt)
+        return dt_str

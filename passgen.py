@@ -22,6 +22,7 @@ organizationName = 'Mobivity'
 passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
 teamIdentifier = 'D96C59RED5'
 webServiceURL = 'https://mobivitypassbook-staging.appspot.com/passkit/'
+# webServiceURL = 'https://mobpass.localtunnel.me/passkit/'
 
 class PassGenerator(object):
 
@@ -31,6 +32,7 @@ class PassGenerator(object):
     def generate(self, pass_entity):
 
         if not pass_entity:
+            logging.error('PASSGEN NO ENTITY!')
             return None
 
         # Auth info
@@ -54,6 +56,7 @@ class PassGenerator(object):
         logging.error("PASSGEN SERIALNUM: {}".format(serialNumber))
         logging.error("PASSGEN TEXT: {}".format(offertext))
         logging.error("PASSGEN EXPIRATION: {}".format(offerexp))
+        logging.error("PASSGEN REDEEMED: {}".format(redeemed))
 
         # Context info
         # QUERY MAY EXCEED  PROJECT LIMITS
@@ -77,7 +80,7 @@ class PassGenerator(object):
                                    changeMessage='Coupon updated to expire on %@',
                                    type='Date')
         # HACK to support push notification when redeemed
-        # Change value from <space> to <empty> when redeemed
+        # Change value from <tab> to <space> when redeemed
         redeemed_field = '\t' if not redeemed else ' '
         cardInfo.addAuxiliaryField('redeemed', redeemed_field, '',
                                    changeMessage='Coupon has been redeemed.%@')
@@ -98,6 +101,15 @@ class PassGenerator(object):
         # Add context info (location and time)
         for (lat, lng) in storeLocations:
             passfile.addLocation(lat, lng, 'Store nearby.')
+
+        # HACK test location notification on iphone and android
+        # 7983 Playmor Terrace
+        passfile.addLocation(32.862709, -117.217561, 'Home nearby.')
+        # 12760 High Bluff Drive
+        passfile.addLocation(32.9503377, -117.2403383, 'Mobivity nearby.')
+        # 12770 High Bluff Drive (Wifi location)
+        passfile.addLocation(32.950414, -117.240039, 'Mobivity wifi nearby.')
+
         now_utc = datetime.datetime.now(timezone('UTC'))
         pass_utc = offerexpdt_obj.astimezone(timezone('UTC'))
         passfile.voided = True if redeemed else (now_utc == pass_utc)
@@ -134,6 +146,8 @@ class PassGenerator(object):
                                  'static/cert/key.pem',
                                  'static/cert/wwdr.pem', '')
         pkpass.seek(0)
+
+        logging.error('PASSGEN COMPLETED.')
 
         return pkpass
 

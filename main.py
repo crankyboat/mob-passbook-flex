@@ -22,7 +22,7 @@ except ImportError:
 
 from flask import Flask, render_template, send_file, request, Response, make_response
 from gcloud import storage, datastore
-from uuid import uuid4, UUID
+from uuid import uuid4
 
 # Push Notification Service
 import push
@@ -46,6 +46,30 @@ passgen = PassGenerator()
 
 with app.app_context():
     imgload_queue = tasks.get_imgload_queue()
+
+
+def build_response(response,
+                   status=400,
+                   contenttype='text',
+                   lastmodified=''):
+
+    response_wrapper = make_response(response)
+    response_wrapper.status_code = status
+    response_wrapper.headers['Pragma'] = 'no-cache'
+    response_wrapper.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, pre-check=0, post-check=0'
+
+    if contenttype == 'text':
+        response_wrapper.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    elif contenttype == 'json':
+        response_wrapper.headers['Content-Type'] = 'application/json'
+    elif contenttype == 'pkpass':
+        response_wrapper.headers['Content-Type'] = 'application/vnd.apple.pkpass'
+        # handled by send_file(file, mimetype='....')
+
+    if lastmodified:
+        response_wrapper.headers['Last-Modified'] = '{}'.format(lastmodified)
+
+    return response_wrapper
 
 
 @app.route('/')
@@ -81,8 +105,15 @@ def send_pass():
 
     # TODO If unsuccessful should remove pass_entity
 
+    lastModified = passkit.get_http_dt_from_timestamp(pass_entity['lastUpdated'])
+
     # Send pass file
-    return send_file(pkpass, mimetype='application/vnd.apple.pkpass')
+    return build_response(
+        send_file(pkpass, mimetype='application/vnd.apple.pkpass'),
+        status=200,
+        contenttype='pkpass',
+        lastmodified=lastModified
+    )
 
 
 # [START Passkit Support]
@@ -93,7 +124,7 @@ def send_pass():
 def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber):
 
     authTitle, authToken = request.headers['Authorization'].split()
-    logging.error('PASSKIT AUTHTOKEN: {}'.format(authToken))
+    logging.error('/PASSKIT/REGIST AUTHTOKEN: {}'.format(authToken))
 
     # Authenticate
     if not passkit.authenticate_authtoken(authTitle, authToken):
@@ -102,17 +133,26 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
     # Register
     if request.method == 'POST':
         pushToken = request.json['pushToken']
-        logging.error('PASSKIT PUSHTOKEN: {}'.format(pushToken))
         status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken, authTitle)
 
+        logging.error('/PASSKIT/REGIST PUSHTOKEN: {}'.format(pushToken))
         logging.error('/PASSKIT/REGIST STATUS: {}'.format(status))
 
         if status == 200:
-            return 'Serial number already exists.', 200
+            return build_response(
+                'Serial number already exists.',
+                status=200
+            )
         elif status == 201:
-            return 'Registration successful.', 201
+            return build_response(
+                'Registration successful.',
+                status=201
+            )
         else:
-            return 'Bad request.', 400
+            return build_response(
+                'Bad request.',
+                status=400
+            )
 
     # Unregister
     else: #request.method == 'DELETE'
@@ -121,9 +161,15 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
         logging.error('/PASSKIT/UNREGIST STATUS: {}'.format(status))
 
         if status == 200:
-            return 'Unregistration successful.', 200
+            return build_response(
+                'Unregistration successful.',
+                status=200
+            )
         else:
-            return 'Bad request.', 400
+            return build_response(
+                'Bad request.',
+                status=400
+            )
 
 
 @app.route('/passkit/<version>/devices/<deviceLibraryIdentifier>/' +
@@ -133,67 +179,108 @@ def get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier)
     updatedSinceTag = request.args.get('passesUpdatedSince')
     payload, status = passkit.get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier, updatedSinceTag)
 
+    logging.error('/PASSKIT/GETSERIAL PAYLOAD: {}'.format(payload))
     logging.error('/PASSKIT/GETSERIAL STATUS: {}'.format(status))
 
     if status == 200:
-        return payload, 200, {'Content-Type': 'application/json'}
+        return build_response(
+            payload,
+            status=200,
+            contenttype='json'
+        )
     elif status == 204:
-        return 'No matching passes.', 204
+        return build_response(
+            'No matching passes.',
+            status=204
+        )
     else:
-        return 'Bad request.', 400
+        return build_response(
+            'Bad request.',
+            status=400
+        )
 
 
 @app.route('/passkit/<version>/passes/<passTypeIdentifier>/<serialNumber>', methods=['GET'])
 def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
 
+    logging.error('/PASSKIT/GETUPDATE AUTH HEADER: {}'.format(request.headers['Authorization']))
     authTitle, authToken = request.headers['Authorization'].split()
-    logging.error('PASSKIT AUTHTOKEN: {}'.format(authToken))
+    logging.error('/PASSKIT/GETUPDATE AUTHTOKEN: {}'.format(authToken))
 
     # Authenticate
     if not passkit.authenticate_authtoken(authTitle, authToken):
         return 'Unauthorized request.', 401
 
-    # TODO Add 'last-modified' header
+    # Parse If-Modified-Since header
+    modifiedSince = passkit.get_timestamp_from_http_dt(request.headers.get('If-Modified-Since'))
+    logging.error('/PASSKIT/GETUPDATE modified-since: {}'.format(modifiedSince))
 
     # Download new pass
-    newpass_entity, status = passkit.get_updated_pass_for_device(version, passTypeIdentifier, serialNumber)
-    newpkpass = passgen.generate(newpass_entity)
-
+    newpass_entity, status = passkit.get_updated_pass_for_device(version, passTypeIdentifier, serialNumber, modifiedSince)
     logging.error('/PASSKIT/GETUPDATE STATUS: {}'.format(status))
 
     if status == 200:
-        return send_file(newpkpass, mimetype='application/vnd.apple.pkpass')
+
+        # TODO Add 'last-modified' header
+        lastModified = passkit.get_http_dt_from_timestamp(newpass_entity['lastUpdated'])
+
+        # Generate new pass
+        newpkpass = passgen.generate(newpass_entity)
+
+        return build_response(
+            send_file(newpkpass, mimetype='application/vnd.apple.pkpass'),
+            status=200,
+            lastmodified=lastModified
+        )
     elif status == 304:
-        return 'Pass has not changed.', 304
+        return build_response(
+            'Pass has not changed.',
+            status=304
+        )
     else:
-        return 'Bad request.', 400
+        return build_response(
+            'Bad request.',
+            status=400
+        )
 
 @app.route('/passkit/<version>/log', methods=['POST'])
 def log(version):
 
     # Retrieve and log
     logs = request.json['logs']
-    logging.error('PASSKIT LOG: {}'.format(logs))
+    logging.error('/PASSKIT/LOG: {}'.format(logs))
 
-    return json.dumps({
-        'logs': logs
-    }), 200, {'Content-Type': 'application/json'}
+    return build_response(
+        json.dumps({'logs': logs}),
+        status=200,
+        contenttype='json'
+    )
 
 # [END Passkit Support]
 
 
 # [START PUSH NOTIFICATION SUPPORT]
+
 @app.route('/push/<deviceLibraryIdentifier>')
 def push_notification(deviceLibraryIdentifier):
 
     pushToken, platform = passkit.get_device_info(deviceLibraryIdentifier)
 
     if platform == 'Apple':
-        return push.push_notification_apple(pushToken), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+        return build_response(
+            push.push_notification_apple(pushToken),
+            status=200
+        )
     elif platform == 'Android':
-        return push.push_notification_android(pushToken), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+        return build_response(
+            push.push_notification_android(pushToken),
+            status=200
+        )
     else:
-        return 'Bad request.', 400
+        return build_response(
+            'Bad request.',
+            status=400
+        )
 
 
 @app.route('/pass/update')
@@ -202,10 +289,13 @@ def update_pass_expiration():
     status = passkit.update_pass_expiration(request.args.get('serialNumber'),
                                             request.args.get('offerExpiration'))
 
-    return 'Serial: {}\nSuccess: {}'.format(
-        request.args.get('serialNumber'),
-        status == 200
-    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    return build_response(
+        'Serial: {}\nSuccess: {}'.format(
+            request.args.get('serialNumber'),
+            status == 200
+        ),
+        status=status
+    )
 
 
 @app.route('/pass/redeem')
@@ -213,18 +303,23 @@ def redeem_pass():
 
     status = passkit.redeem_pass(request.args.get('serialNumber'))
 
-    return 'Serial: {}\nSuccess: {}'.format(
-        request.args.get('serialNumber'),
-        status == 200
-    ), 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    return build_response(
+        'Serial: {}\nSuccess: {}'.format(
+            request.args.get('serialNumber'),
+            status == 200
+        ),
+        status=status
+    )
 
 
 @app.route('/pass/list')
 def list_passes():
 
     # List passes with their associated deviceLibraryIdentifier (many-to-one)
-    return passkit.list_passes_with_devicelibid(), \
-           200, {'Content-Type': 'text/plain; charset=utf-8'}
+    return build_response(
+        passkit.list_passes_with_devicelibid(),
+        status=200
+    )
 
 
 # [END PUSH NOTIFICATION SUPPORT]
