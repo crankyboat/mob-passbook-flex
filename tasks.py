@@ -10,57 +10,68 @@ except ImportError:
     from StringIO import StringIO
 
 
-# [START get_imgload_queue]
 def get_imgload_queue():
     ps_client = pubsub.Client(project=current_app.config['PROJECT_ID'])
     return psq.Queue(ps_client, name='imgload',
                      extra_context=current_app.app_context)
-# [END get_imgload_queue]
 
 
-# [START load_img]
-def load_img(img_url='', img_highres_url=''):
+def get_bucket():
+    storage_client = storage.Client(project=current_app.config['PROJECT_ID'])
+    bucket = storage_client.get_bucket(current_app.config['PROJECT_ID'])
+    return bucket
+
+
+def load_img(imgUrl='', imgSerial='', imgFilename=''):
+
+    if not imgUrl or not imgSerial or not imgFilename:
+        return
 
     http = urllib3.PoolManager()
-
-    if img_url:
-        hreq = http.request('GET', img_url, preload_content=False)
-        img_file = StringIO(hreq.read())
-    if img_highres_url:
-        hreq = http.request('GET', img_highres_url, preload_content=False)
-        img_highres_file = StringIO(hreq.read())
+    hreq = http.request('GET', imgUrl, preload_content=False)
+    imgFile = StringIO(hreq.read())
     hreq.release_conn()
 
-    # TODO Name preloaded images to avoid conflict
     # Store images to blob stroage
-    storage_client = storage.Client(project=current_app.config['PROJECT_ID'])
-    bucket = storage_client.get_bucket(current_app.config['PROJECT_ID'])
-    blob = bucket.blob('img.png', chunk_size=262144)
-    blob.upload_from_file(img_file)
-    blob = bucket.blob('img_highres.png', chunk_size=262144)
-    blob.upload_from_file(img_highres_file)
-
-    return
-# [END load_img]
-
-
-def get_img():
-
-    # Get images from blob storage
-    img = StringIO()
-    imgHR = StringIO()
-    storage_client = storage.Client(project=current_app.config['PROJECT_ID'])
-    bucket = storage_client.get_bucket(current_app.config['PROJECT_ID'])
-
     try:
-        blob = bucket.get_blob('img.png')
-        blob.download_to_file(img)
-        blob = bucket.get_blob('img_highres.png')
-        blob.download_to_file(imgHR)
+        bucket = get_bucket()
+        blob = bucket.blob('{}_{}.png'.format(imgSerial, imgFilename), chunk_size=262144)
+        blob.upload_from_file(imgFile)
     except:
         raise
 
-    img.seek(0)
-    imgHR.seek(0)
-    return img, imgHR
+    return
+
+
+def get_img(imgSerial='', imgFilename=''):
+
+    if not imgSerial or not imgFilename:
+        return None
+
+    # Get image from blob storage
+    try:
+        bucket = get_bucket()
+        imgFile = StringIO()
+        blob = bucket.get_blob('{}_{}.png'.format(imgSerial, imgFilename))
+        blob.download_to_file(imgFile)
+    except:
+        raise
+
+    imgFile.seek(0)
+    return imgFile
+
+
+def delete_img(imgSerial='', imgFilename=''):
+
+    if not imgSerial or not imgFilename:
+        return
+
+    # Delete image from blob storage
+    try:
+        bucket = get_bucket()
+        bucket.delete_blob('{}_{}.png'.format(imgSerial, imgFilename))
+    except:
+        logging.error('PSQWORKER IMGLOAD DELETE ERROR.')
+
+    return
 

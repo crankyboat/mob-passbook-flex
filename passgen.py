@@ -131,7 +131,8 @@ class PassGenerator(object):
 
         # Retrieve queued image load results
         try:
-            offerimg_file, offerimgHR_file = tasks.get_img()
+            offerimg_file = tasks.get_img(serialNumber, 'strip')
+            offerimgHR_file = tasks.get_img(serialNumber, 'strip@2x')
             logging.error('PASSGEN IMAGE PRELOAD Success.')
         except:
             http = urllib3.PoolManager()
@@ -141,6 +142,11 @@ class PassGenerator(object):
             offerimgHR_file = StringIO(hreq.read())
             hreq.release_conn()
             logging.error('PASSGEN IMAGE PRELOAD TimeoutError.')
+
+        # Queue delete image task
+        q = tasks.get_imgload_queue()
+        q.enqueue(tasks.delete_img, serialNumber, 'strip')
+        q.enqueue(tasks.delete_img, serialNumber, 'strip@2x')
 
         passfile.addFile('strip.png', offerimg_file)
         passfile.addFile('strip@2x.png', offerimgHR_file)
@@ -154,6 +160,4 @@ class PassGenerator(object):
         logging.error('PASSGEN COMPLETED.')
 
         return pkpass
-
-
 

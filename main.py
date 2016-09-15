@@ -110,27 +110,26 @@ def requires_auth(f):
 @app.route('/')
 def hello():
 
-    # Queue load image task
-    offerimg = request.args.get('offerImage')
-    offerimgHR = request.args.get('offerImageHighRes')
-    q = tasks.get_imgload_queue()
-    q.enqueue(tasks.load_img, offerimg, offerimgHR)
-
-
     # TODO Ensure unique serial behavior
     # between access to '/' and '/pass'
-
 
     # Generate serialNumber
     serialNumber = uuid4().hex
 
     # Sign serialNumber
     import hashlib
-    salt = '39cdc0782aca473eb4718309c262398e'
+    salt = '08f92b7a-7b90-11e6-8b77-86f30ca893d3'
     message = '{}{}'.format(serialNumber, salt)
     signedMessage = hashlib.md5()
     signedMessage.update(message.encode())
     signedMessageHex = signedMessage.hexdigest()
+
+    # Queue load image task
+    offerimg = request.args.get('offerImage')
+    offerimgHR = request.args.get('offerImageHighRes')
+    q = tasks.get_imgload_queue()
+    q.enqueue(tasks.load_img, offerimg, serialNumber, 'strip')
+    q.enqueue(tasks.load_img, offerimgHR, serialNumber, 'strip@2x')
 
     return build_response(
         render_template(
