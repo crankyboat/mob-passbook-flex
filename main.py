@@ -34,6 +34,9 @@ from passgen import PassGenerator
 # Passkit Web Service
 from passkit import PasskitWebService
 
+# Basic Auth
+from functools import wraps
+
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -62,14 +65,46 @@ def build_response(response,
         response_wrapper.headers['Content-Type'] = 'text/plain; charset=utf-8'
     elif contenttype == 'json':
         response_wrapper.headers['Content-Type'] = 'application/json'
-    elif contenttype == 'pkpass':
+    elif contenttype == 'html':
+        response_wrapper.headers['Content-Type'] = 'text/html; charset=utf-8'
+    elif contenttype == 'pkpass':   # Should already be handled by send_file(file, mimetype='application/vnd.apple.pkpass')
         response_wrapper.headers['Content-Type'] = 'application/vnd.apple.pkpass'
-        # handled by send_file(file, mimetype='....')
 
     if lastmodified:
         response_wrapper.headers['Last-Modified'] = '{}'.format(lastmodified)
 
     return response_wrapper
+
+
+# [START BASIC AUTH SUPPORT]
+
+def check_auth(auth):
+
+    header, token = auth.split()
+    pass_auth_header = 'MobivityOffer'  # TEMP
+    pass_auth_token = '2ec6c5e11fe449d090cacae58d3cfda2'  # TEMP
+    return header == pass_auth_header and \
+           token == pass_auth_token
+
+
+def authenticate():
+
+    response = make_response('Authentication failure.')
+    response.headers['WWW-Authenticate'] = 'Basic realm="MOBIVITY"'
+    response.status_code = 401
+    return response
+
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization')
+        if not auth or not check_auth(auth):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+# [END BASIC AUTH SUPPORT]
 
 
 @app.route('/')
@@ -81,7 +116,31 @@ def hello():
     q = tasks.get_imgload_queue()
     q.enqueue(tasks.load_img, offerimg, offerimgHR)
 
-    return render_template('index.html')
+
+    # TODO Ensure unique serial behavior
+    # between access to '/' and '/pass'
+
+
+    # Generate serialNumber
+    serialNumber = uuid4().hex
+
+    # Sign serialNumber
+    import hashlib
+    salt = '39cdc0782aca473eb4718309c262398e'
+    message = '{}{}'.format(serialNumber, salt)
+    signedMessage = hashlib.md5()
+    signedMessage.update(message.encode())
+    signedMessageHex = signedMessage.hexdigest()
+
+    return build_response(
+        render_template(
+            'index.html',
+            serialNumber=serialNumber,
+            hexSignature=signedMessageHex
+        ),
+        status=200,
+        contenttype='html'
+    )
 
 
 @app.route('/pass')
@@ -92,13 +151,12 @@ def send_pass():
     passkit.add_pass_authtoken(pass_auth)
 
     # Add pass to datastore
-    pass_serial = uuid4().hex
-    pass_entity = passkit.add_pass(pass_serial, pass_auth, request.args.get('uid'),
-                                   request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
+    pass_entity = passkit.add_pass(request.args.get('serialNumber'), request.args.get('hexSignature'), pass_auth,
+                                   request.args.get('uid'), request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
                                    request.args.get('offerImage'), request.args.get('offerImageHighRes'),
                                    request.args.get('offerText'), request.args.get('offerExpiration'))
 
-    logging.error('PASS SERIAL: {}'.format(pass_serial))
+    logging.error('PASS SERIAL: {}'.format(request.args.get('serialNumber')))
 
     # Generate pass file
     pkpass = passgen.generate(pass_entity)
@@ -261,7 +319,8 @@ def log(version):
 
 # [START PUSH NOTIFICATION SUPPORT]
 
-@app.route('/push/<deviceLibraryIdentifier>')
+@app.route('/push/<deviceLibraryIdentifier>', methods=['POST'])
+@requires_auth
 def push_notification(deviceLibraryIdentifier):
 
     pushToken, platform = passkit.get_device_info(deviceLibraryIdentifier)
@@ -283,7 +342,8 @@ def push_notification(deviceLibraryIdentifier):
         )
 
 
-@app.route('/pass/update')
+@app.route('/pass/update', methods=['POST'])
+@requires_auth
 def update_pass_expiration():
 
     status = passkit.update_pass_expiration(request.args.get('serialNumber'),
@@ -298,8 +358,12 @@ def update_pass_expiration():
     )
 
 
-@app.route('/pass/redeem')
+@app.route('/pass/redeem', methods=['POST'])
+@requires_auth
 def redeem_pass():
+
+    # EXPOSED TO HOOK SERVICE
+    # Requires basic auth
 
     status = passkit.redeem_pass(request.args.get('serialNumber'))
 
@@ -312,7 +376,8 @@ def redeem_pass():
     )
 
 
-@app.route('/pass/list')
+@app.route('/pass/list', methods=['GET'])
+@requires_auth
 def list_passes():
 
     # List passes with their associated deviceLibraryIdentifier (many-to-one)

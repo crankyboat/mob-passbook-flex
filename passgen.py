@@ -38,6 +38,7 @@ class PassGenerator(object):
         # Auth info
         authToken = pass_entity['authToken']
         serialNumber = pass_entity['serialNumber']
+        hexSignature = pass_entity['hexSignature']
         # User info
         uid = pass_entity['uid']
         fname = pass_entity['fname']
@@ -71,7 +72,10 @@ class PassGenerator(object):
         offerexpdt_obj = datetime.datetime.combine(odate, otime)
         offerexpdt_obj = timezone(DEFAULT_TIMEZONE).localize(offerexpdt_obj)
         offerexpdt = offerexpdt_obj.isoformat('T')
-        barcodeMsg = '{} {}\n{}\n{}\n{}\n'.format(fname, lname, offertext, uid, offerexp)
+        barcodeMsg = '{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(
+            uid, fname, lname, '6" Meatball Sub', '8/9/2016',
+            offertext, offerexp, serialNumber, hexSignature
+        )
 
         # Add primary and auxiliary fields
         cardInfo = Coupon()

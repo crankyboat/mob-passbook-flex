@@ -263,42 +263,48 @@ class PasskitWebService(object):
                (authTitle == 'ApplePass' or authTitle == 'AndroidPass')
 
 
-    def add_pass(self, serialNumber, authToken,
+    def add_pass(self, serialNumber, hexSignature, authToken,
                  uid, fname, lname, zipcode,
                  offerImage, offerImageHighRes,
                  offerText, offerExpiration):
 
-
         pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
-        pass_entity = datastore.Entity(key=pass_key)
-        pass_entity.update({
 
-            # Auth info
-            'serialNumber': '{}'.format(serialNumber),
-            'authToken': authToken,
+        # If pass with serialNumber already exists, do nothing
+        pass_entity = self.gds.get(pass_key)
 
-            # User info
-            'uid': uid,
-            'fname': fname,
-            'lname': lname,
+        if not pass_entity:
 
-            # Context info
-            'zipcode': zipcode,
+            pass_entity = datastore.Entity(key=pass_key)
+            pass_entity.update({
 
-            # Offer info
-            'offerImage': offerImage,
-            'offerImageHighRes': offerImageHighRes,
-            'offerText': offerText,
-            'offerExpiration': offerExpiration,
+                # Auth info
+                'serialNumber': '{}'.format(serialNumber),
+                'hexSignature': '{}'.format(hexSignature),
+                'authToken': authToken,
 
-            # Timestamp
-            'lastUpdated': self.get_current_timestamp(),
+                # User info
+                'uid': uid,
+                'fname': fname,
+                'lname': lname,
 
-            # Redemption
-            'redeemed': False
+                # Context info
+                'zipcode': zipcode,
 
-        })
-        self.gds.put(pass_entity)
+                # Offer info
+                'offerImage': offerImage,
+                'offerImageHighRes': offerImageHighRes,
+                'offerText': offerText,
+                'offerExpiration': offerExpiration,
+
+                # Timestamp
+                'lastUpdated': self.get_current_timestamp(),
+
+                # Redemption
+                'redeemed': False
+
+            })
+            self.gds.put(pass_entity)
 
         return pass_entity
 

@@ -141,27 +141,30 @@
     </script>
     <!-- ### End Query String Script ### -->
     <script>
-        var txt = getParameterByName('fname') + ' ' + (getParameterByName('lname').substr(0,1)) + '\n';
+        var txt = getParameterByName('uid') + '\n';
+        txt += getParameterByName('fname') + '\n';
+        txt += getParameterByName('lname') + '\n';
+        txt += '6" Meatball Sub\n';
+        txt += '8/9/2016\n';
         txt += getParameterByName('offerText') + '\n';
-        txt += getParameterByName('uid') + '\n';
-        txt += '6" Meatball Sandwich\n';
-        txt += getParameterByName('offerExpiration');
+        txt += getParameterByName('offerExpiration') + '\n';
+        txt += '{{ serialNumber }}' + '\n';
+        txt += '{{ hexSignature }}';
         $('#QRCode').qrcode({width: 192, height: 192, text: txt});
-    </script>
-    <script>
+
         if (isIphone()) {
-            var path = 'pass?' + getQueryString()
-            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet.svg" alt="Add to Wallet"></a>'
-            $('#addToWallet').append(component)
+            var path = 'pass?' + 'serialNumber={{ serialNumber }}&hexSignature={{ hexSignature }}&' + getQueryString();
+            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet.svg" alt="Add to Wallet"></a>';
+            $('#addToWallet').append(component);
         }
         else if (isAndroid()) {
-            var encodedQueryString = encodeURIComponent(getQueryString())
-            var path = 'https://walletpass.io?u=' + 'https%3A%2F%2Fmobivitypassbook-staging.appspot.com%2Fpass%3F' + encodedQueryString
-            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet-android.png" alt="Add to Wallet"></a>'
-            $('#addToWallet').append(component)
+            var encodedQueryString = encodeURIComponent('serialNumber={{ serialNumber }}&hexSignature={{ hexSignature }}' + getQueryString());
+            var path = 'https://walletpass.io?u=' + 'https%3A%2F%2Fmobivitypassbook-staging.appspot.com%2Fpass%3F' + encodedQueryString;
+            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet-android.png" alt="Add to Wallet"></a>';
+            $('#addToWallet').append(component);
         }
-    </script>
 
+    </script>
     </body>
 
 </html>
