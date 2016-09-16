@@ -1,0 +1,5 @@
+cron:
+- description: daily cleanup of used image blobs
+  url: /cleanup/storage
+  schedule: every day 04:00
+  timezone: America/Los_Angeles

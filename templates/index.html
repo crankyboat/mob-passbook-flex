@@ -139,17 +139,8 @@
             );
         }
     </script>
-    <!-- ### End Query String Script ### -->
     <script>
-        var txt = getParameterByName('uid') + '\n';
-        txt += getParameterByName('fname') + '\n';
-        txt += getParameterByName('lname') + '\n';
-        txt += '6" Meatball Sub\n';
-        txt += '8/9/2016\n';
-        txt += getParameterByName('offerText') + '\n';
-        txt += getParameterByName('offerExpiration') + '\n';
-        txt += '{{ serialNumber }}' + '\n';
-        txt += '{{ hexSignature }}';
+        var txt = '{{ qrcodeText|replace('\n','\\n')|replace('\'', '\\\'')|safe }}';
         $('#QRCode').qrcode({width: 192, height: 192, text: txt});
 
         if (isIphone()) {
@@ -163,7 +154,6 @@
             var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet-android.png" alt="Add to Wallet"></a>';
             $('#addToWallet').append(component);
         }
-
     </script>
     </body>
 

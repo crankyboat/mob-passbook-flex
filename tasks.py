@@ -75,3 +75,17 @@ def delete_img(imgSerial='', imgFilename=''):
 
     return
 
+
+def cleanup():
+
+    # Delete all images from storage
+    try:
+        bucket = get_bucket()
+        for blob in bucket.list_blobs():
+            blob.delete()
+        return 200
+    except:
+        logging.error('PSQWORKER CLEANUP ERROR.')
+        return 400
+
+

@@ -116,13 +116,25 @@ def hello():
     # Generate serialNumber
     serialNumber = uuid4().hex
 
-    # Sign serialNumber
+    # Barcode message to hash
+    originalList = [
+        request.args.get('uid'), request.args.get('fname'),
+        request.args.get('lname'), '6" Meatball Sub', '8/9/2016',
+        request.args.get('offerText'), request.args.get('offerExpiration'),
+        serialNumber
+    ]
+    originalMessage = '{}\n'.format('\n'.join(originalList))
+    logging.error('ORIGINAL MESSAGE: {}'.format(originalMessage))
+
+    # Sign message
     import hashlib
     salt = '08f92b7a-7b90-11e6-8b77-86f30ca893d3'
-    message = '{}{}'.format(serialNumber, salt)
+    message = '{}{}'.format(originalMessage, salt)
     signedMessage = hashlib.md5()
     signedMessage.update(message.encode())
     signedMessageHex = signedMessage.hexdigest()
+    qrcodeText = '{}{}'.format(originalMessage, signedMessageHex)
+    logging.error('QRCODE TEXT: {}'.format(qrcodeText))
 
     # Queue load image task
     offerimg = request.args.get('offerImage')
@@ -134,6 +146,7 @@ def hello():
     return build_response(
         render_template(
             'index.html',
+            qrcodeText=qrcodeText,
             serialNumber=serialNumber,
             hexSignature=signedMessageHex
         ),
@@ -387,6 +400,17 @@ def list_passes():
 
 
 # [END PUSH NOTIFICATION SUPPORT]
+
+
+@app.route('/cleanup/storage', methods=['POST'])
+@requires_auth
+def cleanup_storage():
+
+    status = tasks.cleanup()
+    return build_response(
+        'Daily storage cleanup.\nStatus: {}'.format(status),
+        status=status
+    )
 
 
 @app.errorhandler(500)
