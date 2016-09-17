@@ -273,8 +273,8 @@ def get_serials_for_device(version, deviceLibraryIdentifier, passTypeIdentifier)
 @app.route('/passkit/<version>/passes/<passTypeIdentifier>/<serialNumber>', methods=['GET'])
 def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
 
-    logging.error('/PASSKIT/GETUPDATE AUTH HEADER: {}'.format(request.headers['Authorization']))
     authTitle, authToken = request.headers['Authorization'].split()
+    logging.error('/PASSKIT/GETUPDATE AUTH HEADER: {}'.format(request.headers['Authorization']))
     logging.error('/PASSKIT/GETUPDATE AUTHTOKEN: {}'.format(authToken))
 
     # Authenticate
@@ -291,8 +291,9 @@ def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
 
     if status == 200:
 
-        # TODO Add 'last-modified' header
+        # Add Last-Modified header
         lastModified = passkit.get_http_dt_from_timestamp(newpass_entity['lastUpdated'])
+        logging.error('/PASSKIT/GETUPDATE last-modified: {}'.format(lastModified))
 
         # Generate new pass
         newpkpass = passgen.generate(newpass_entity)
@@ -376,8 +377,15 @@ def redeem_pass():
 
     # EXPOSED TO HOOK SERVICE
     # Requires basic auth
+    # Sends push notification to device
 
     status = passkit.redeem_pass(request.args.get('serialNumber'))
+    deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
+    logging.error('REDEEM API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
+
+    if status == 200 and deviceLibraryIdentifier:
+        push_notification(deviceLibraryIdentifier)
+        logging.error('REDEEM PUSH.')
 
     return build_response(
         'Serial: {}\nSuccess: {}'.format(

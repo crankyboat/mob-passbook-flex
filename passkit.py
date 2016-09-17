@@ -354,16 +354,10 @@ class PasskitWebService(object):
         pass_results = []
         regist_results = []
         for p in passes:
-
-            regist_query = self.gds.query(kind='RegistrationPassType')
-            regist_query.add_filter('serialNumbers', '=', p['serialNumber'])
-            registrations = list(regist_query.fetch())
-
-            assert len(registrations) <= 1
-
-            if len(registrations) > 0:
+            devicelibid = self.get_devicelibid_of_pass(p['serialNumber'])
+            if devicelibid:
                 pass_results += ['{lastUpdated}, {serialNumber}, {offerExpiration}, {redeemed}'.format(**p)]
-                regist_results += [registrations[0]['deviceLibraryIdentifier']]
+                regist_results += [devicelibid]
 
         assert len(pass_results) == len(regist_results)
 
@@ -373,6 +367,20 @@ class PasskitWebService(object):
         ]
 
         return '(Timestamp, SerialNumber, OfferExpiration, Redeemed, DeviceLibraryId)\n{}'.format('\n'.join(results))
+
+
+    def get_devicelibid_of_pass(self, serialNumber):
+
+        regist_query = self.gds.query(kind='RegistrationPassType')
+        regist_query.add_filter('serialNumbers', '=', serialNumber)
+        registration = list(regist_query.fetch())
+
+        assert len(registration) <= 1
+
+        if len(registration) > 0:
+            return registration[0]['deviceLibraryIdentifier']
+        else:
+            return None
 
 
     def get_device_info(self, deviceLibraryIdentifier):
