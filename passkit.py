@@ -255,7 +255,7 @@ class PasskitWebService(object):
 
         # Strong consistency enforced through ancestor query
         key = self.gds.key('AuthList', 'default',
-                      'AuthToken', 'mobipass')
+                           'AuthToken', 'mobipass')
         entity = self.gds.get(key)
 
         return entity and \
@@ -275,7 +275,11 @@ class PasskitWebService(object):
 
         if not pass_entity:
 
-            pass_entity = datastore.Entity(key=pass_key)
+            pass_entity = datastore.Entity(
+                key=pass_key,
+                exclude_from_indexes=('offerImage', 'offerImageHighRes', 'offerText')
+            )
+
             pass_entity.update({
 
                 # Auth info
@@ -311,7 +315,7 @@ class PasskitWebService(object):
 
     def delete_pass(self, pass_serial):
 
-        # WHEN?
+        # TODO Determine when to delete passes
         pass_key = self.gds.key('Passes', '{}'.format(pass_serial))
         self.gds.delete(pass_key)
         return
@@ -336,7 +340,7 @@ class PasskitWebService(object):
         with self.gds.transaction():
             pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
             pass_entity = self.gds.get(pass_key)
-            if pass_entity:
+            if pass_entity and not pass_entity['redeemed']:
                 pass_entity['redeemed'] = True
                 pass_entity['lastUpdated'] = self.get_current_timestamp()
                 self.gds.put(pass_entity)
@@ -415,6 +419,9 @@ class PasskitWebService(object):
 
 
     def get_http_dt_from_timestamp(self, timestamp):
+
+        if not timestamp:
+            return None
 
         dt = time.gmtime(timestamp)
         dt_str = time.strftime('%a, %d %b %Y %H:%M:%S GMT', dt)

@@ -28,7 +28,7 @@ from uuid import uuid4
 import push
 
 # Pass Generation
-import tasks
+import imgload
 from passgen import PassGenerator
 
 # Passkit Web Service
@@ -48,7 +48,7 @@ passgen = PassGenerator()
 
 
 with app.app_context():
-    imgload_queue = tasks.get_imgload_queue()
+    imgload_queue = imgload.get_imgload_queue()
 
 
 def build_response(response,
@@ -124,7 +124,7 @@ def hello():
         serialNumber
     ]
     originalMessage = '{}\n'.format('\n'.join(originalList))
-    logging.error('ORIGINAL MESSAGE: {}'.format(originalMessage))
+    # logging.error('ORIGINAL MESSAGE: {}'.format(originalMessage))
 
     # Sign message
     import hashlib
@@ -134,14 +134,14 @@ def hello():
     signedMessage.update(message.encode())
     signedMessageHex = signedMessage.hexdigest()
     qrcodeText = '{}{}'.format(originalMessage, signedMessageHex)
-    logging.error('QRCODE TEXT: {}'.format(qrcodeText))
+    logging.error('QRCODE TEXT: {}'.format(qrcodeText.replace('\n', '\\n')))
 
     # Queue load image task
     offerimg = request.args.get('offerImage')
     offerimgHR = request.args.get('offerImageHighRes')
-    q = tasks.get_imgload_queue()
-    q.enqueue(tasks.load_img, offerimg, serialNumber, 'strip')
-    q.enqueue(tasks.load_img, offerimgHR, serialNumber, 'strip@2x')
+    q = imgload.get_imgload_queue()
+    q.enqueue(imgload.load_img, offerimg, serialNumber, 'strip')
+    q.enqueue(imgload.load_img, offerimgHR, serialNumber, 'strip@2x')
 
     return build_response(
         render_template(
@@ -283,7 +283,7 @@ def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
 
     # Parse If-Modified-Since header
     modifiedSince = passkit.get_timestamp_from_http_dt(request.headers.get('If-Modified-Since'))
-    logging.error('/PASSKIT/GETUPDATE modified-since: {}'.format(modifiedSince))
+    logging.error('/PASSKIT/GETUPDATE modified-since: {}'.format(request.headers.get('If-Modified-Since')))
 
     # Download new pass
     newpass_entity, status = passkit.get_updated_pass_for_device(version, passTypeIdentifier, serialNumber, modifiedSince)
@@ -361,6 +361,12 @@ def update_pass_expiration():
 
     status = passkit.update_pass_expiration(request.args.get('serialNumber'),
                                             request.args.get('offerExpiration'))
+    deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
+    logging.error('UPDATE EXPIRATION API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
+
+    if status == 200 and deviceLibraryIdentifier:
+        push_notification(deviceLibraryIdentifier)
+        logging.error('UPDATE EXPIRATION PUSHED.')
 
     return build_response(
         'Serial: {}\nSuccess: {}'.format(
@@ -385,7 +391,7 @@ def redeem_pass():
 
     if status == 200 and deviceLibraryIdentifier:
         push_notification(deviceLibraryIdentifier)
-        logging.error('REDEEM PUSH.')
+        logging.error('REDEEM PUSHED.')
 
     return build_response(
         'Serial: {}\nSuccess: {}'.format(
@@ -414,7 +420,7 @@ def list_passes():
 @requires_auth
 def cleanup_storage():
 
-    status = tasks.cleanup()
+    status = imgload.cleanup()
     return build_response(
         'Daily storage cleanup.\nStatus: {}'.format(status),
         status=status

@@ -8,7 +8,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-import tasks
+import imgload
 import zipquery
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
 from gcloud.exceptions import ClientError
@@ -80,14 +80,22 @@ class PassGenerator(object):
         # Add primary and auxiliary fields
         cardInfo = Coupon()
         cardInfo.addPrimaryField('offer', '', '')  # Text on strip image
-        cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES',
-                                   changeMessage='Coupon updated to expire on %@',
-                                   type='Date')
+        cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES', type='Date',
+                                   changeMessage='Coupon updated to expire on %@.')
         # HACK to support push notification when redeemed
         # Change value from <tab> to <space> when redeemed
         redeemed_field = '\t' if not redeemed else ' '
-        cardInfo.addAuxiliaryField('redeemed', redeemed_field, '',
-                                   changeMessage='Coupon has been redeemed.%@')
+        cardInfo.addPrimaryField('redeemed', redeemed_field, '',
+                                 changeMessage='Coupon has been redeemed.%@')
+
+        # # HACK TEST
+        # if not redeemed:
+        #     cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES',
+        #                                changeMessage='Coupon updated to expire on %@.', type='Date')
+        # else:
+        #     cardInfo.addAuxiliaryField('expires', 'REDEEMED', 'EXPIRES',
+        #                                changeMessage='Coupon has been %@.')
+
 
         # Create pass object
         passfile = Pass(cardInfo,
@@ -131,8 +139,10 @@ class PassGenerator(object):
 
         # Retrieve queued image load results
         try:
-            offerimg_file = tasks.get_img(serialNumber, 'strip')
-            offerimgHR_file = tasks.get_img(serialNumber, 'strip@2x')
+            offerimg_file = imgload.get_img(serialNumber, 'strip')
+            offerimgHR_file = imgload.get_img(serialNumber, 'strip@2x')
+            assert offerimg_file
+            assert offerimg_file
             logging.error('PASSGEN IMAGE PRELOAD Success.')
         except:
             http = urllib3.PoolManager()
@@ -144,9 +154,9 @@ class PassGenerator(object):
             logging.error('PASSGEN IMAGE PRELOAD TimeoutError.')
 
         # Queue delete image task
-        q = tasks.get_imgload_queue()
-        q.enqueue(tasks.delete_img, serialNumber, 'strip')
-        q.enqueue(tasks.delete_img, serialNumber, 'strip@2x')
+        q = imgload.get_imgload_queue()
+        q.enqueue(imgload.delete_img, serialNumber, 'strip')
+        q.enqueue(imgload.delete_img, serialNumber, 'strip@2x')
 
         passfile.addFile('strip.png', offerimg_file)
         passfile.addFile('strip@2x.png', offerimgHR_file)
