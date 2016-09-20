@@ -23,15 +23,16 @@ except ImportError:
 from flask import Flask, render_template, send_file, request, Response, make_response
 from gcloud import storage, datastore
 from uuid import uuid4
+import hashlib
 
-# Push Notification Service
+# Apple Push Notification Service
 import push
 
-# Pass Generation
+# Apple Pass Generation
 import imgload
 from passgen import PassGenerator
 
-# Passkit Web Service
+# Apple Passkit Web Service
 from passkit import PasskitWebService
 
 # Basic Auth
@@ -45,6 +46,13 @@ gds = datastore.Client(project=app.config['PROJECT_ID'])
 passkit = PasskitWebService(datastoreClient=gds,
                             storageClient=gstorage)
 passgen = PassGenerator()
+
+
+# [START DEFAULT TOKENS
+DEFAULT_AUTHTOKEN = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc'
+DEFAULT_SERIAL_SALT = '248f1704b8cc4232b4475143a8e98c32'
+DEFAULT_SIGNATURE_SALT = '08f92b7a-7b90-11e6-8b77-86f30ca893d3'
+# [END DEFAULT TOKENS]
 
 
 with app.app_context():
@@ -113,22 +121,26 @@ def hello():
     # TODO Ensure unique serial behavior
     # between access to '/' and '/pass'
 
-    # Generate serialNumber
-    serialNumber = uuid4().hex
-
-    # Barcode message to hash
-    originalList = [
+    paramList = [
         request.args.get('uid'), request.args.get('fname'),
         request.args.get('lname'), '6" Meatball Sub', '8/9/2016',
-        request.args.get('offerText'), request.args.get('offerExpiration'),
-        serialNumber
+        request.args.get('offerText'), request.args.get('offerExpiration')
     ]
+
+    # Generate serialNumber from params
+    # serialNumber = uuid4().hex
+    serialSalt = DEFAULT_SERIAL_SALT
+    serialMessage = '{}{}'.format(''.join(paramList), serialSalt)
+    signedSerialMessage = hashlib.md5()
+    signedSerialMessage.update(serialMessage.encode())
+    serialNumber = signedSerialMessage.hexdigest()
+
+    # Barcode message to hash
+    originalList = paramList + [serialNumber]
     originalMessage = '{}\n'.format('\n'.join(originalList))
-    # logging.error('ORIGINAL MESSAGE: {}'.format(originalMessage))
 
     # Sign message
-    import hashlib
-    salt = '08f92b7a-7b90-11e6-8b77-86f30ca893d3'
+    salt = DEFAULT_SIGNATURE_SALT
     message = '{}{}'.format(originalMessage, salt)
     signedMessage = hashlib.md5()
     signedMessage.update(message.encode())
@@ -159,14 +171,16 @@ def hello():
 def send_pass():
 
     # Save authtoken to datastore
-    pass_auth = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc' # TEMP
+    pass_auth = DEFAULT_AUTHTOKEN
     passkit.add_pass_authtoken(pass_auth)
 
     # Add pass to datastore
-    pass_entity = passkit.add_pass(request.args.get('serialNumber'), request.args.get('hexSignature'), pass_auth,
-                                   request.args.get('uid'), request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
-                                   request.args.get('offerImage'), request.args.get('offerImageHighRes'),
-                                   request.args.get('offerText'), request.args.get('offerExpiration'))
+    pass_entity = passkit.add_pass(
+        request.args.get('serialNumber'), request.args.get('hexSignature'), pass_auth,
+        request.args.get('uid'), request.args.get('fname'), request.args.get('lname'), request.args.get('zipcode'),
+        request.args.get('offerImage'), request.args.get('offerImageHighRes'),
+        request.args.get('offerText'), request.args.get('offerExpiration')
+    )
 
     logging.error('PASS SERIAL: {}'.format(request.args.get('serialNumber')))
 
