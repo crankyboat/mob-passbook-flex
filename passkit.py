@@ -340,7 +340,9 @@ class PasskitWebService(object):
         with self.gds.transaction():
             pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
             pass_entity = self.gds.get(pass_key)
-            if pass_entity and not pass_entity['redeemed']:
+            if pass_entity and \
+                    not pass_entity['redeemed'] and \
+                    self.get_timestamp_from_date(pass_entity['offerExpiration']) > self.get_current_timestamp():
                 pass_entity['redeemed'] = True
                 pass_entity['lastUpdated'] = self.get_current_timestamp()
                 self.gds.put(pass_entity)
@@ -404,6 +406,22 @@ class PasskitWebService(object):
         now_timestamp = calendar.timegm(now_utc.timetuple())
         return now_timestamp
         # now_timestamp = time.mktime(now_utc.timetuple())
+
+
+    def get_timestamp_from_date(self, datestr):
+
+        if not datestr:
+            return None
+
+        DEFAULT_TIMEZONE = 'US/Pacific'
+
+        date = datetime.datetime.strptime(datestr, "%m/%d/%Y")
+        time = datetime.time(23, 59, 59, 0)
+        dt = datetime.datetime.combine(date, time)
+        dt = timezone(DEFAULT_TIMEZONE).localize(dt)
+        dt_utc = dt.astimezone(timezone('UTC'))
+        timestamp = calendar.timegm(dt_utc.timetuple())
+        return timestamp
 
 
     def get_timestamp_from_http_dt(self, http_dt):

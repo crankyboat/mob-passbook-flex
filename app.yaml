@@ -3,7 +3,6 @@ runtime: custom
 vm: true
 
 # [START entrypoint]
-#entrypoint: gunicorn -b :$PORT main:app
 entrypoint: honcho start -f procfile app
 # [END entrypoint]
 
@@ -17,4 +16,6 @@ handlers:
 - url: /.*
   script: IGNORED
   secure: always
+- url: /cleanup/storage
+  login: admin
 

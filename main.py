@@ -129,8 +129,12 @@ def hello():
 
     # Generate serialNumber from params
     # serialNumber = uuid4().hex
+    serialList = paramList + [
+        request.args.get('offerImage'), request.args.get('offerImageHighRes'),
+        request.args.get('zipcode')
+    ]
     serialSalt = DEFAULT_SERIAL_SALT
-    serialMessage = '{}{}'.format(''.join(paramList), serialSalt)
+    serialMessage = '{}{}'.format(''.join(serialList), serialSalt)
     signedSerialMessage = hashlib.md5()
     signedSerialMessage.update(serialMessage.encode())
     serialNumber = signedSerialMessage.hexdigest()
@@ -315,6 +319,7 @@ def get_updated_pass_for_device(version, passTypeIdentifier, serialNumber):
         return build_response(
             send_file(newpkpass, mimetype='application/vnd.apple.pkpass'),
             status=200,
+            contenttype='pkpass',
             lastmodified=lastModified
         )
     elif status == 304:
@@ -430,8 +435,7 @@ def list_passes():
 # [END PUSH NOTIFICATION SUPPORT]
 
 
-@app.route('/cleanup/storage', methods=['POST'])
-@requires_auth
+@app.route('/cleanup/storage')
 def cleanup_storage():
 
     status = imgload.cleanup()

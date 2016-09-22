@@ -19,8 +19,8 @@ DEFAULT_FORECOLOR = 'rgb(255, 255, 255)'
 DEFAULT_BACKCOLOR = 'rgb(72,158,59)'
 
 organizationName = 'Mobivity'
-passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
 teamIdentifier = 'D96C59RED5'
+passTypeIdentifier = 'pass.com.mobivity.scannerdemo'
 webServiceURL = 'https://mobivitypassbook-staging.appspot.com/passkit/'
 # webServiceURL = 'https://mobpass.localtunnel.me/passkit/'
 
@@ -61,10 +61,7 @@ class PassGenerator(object):
 
         # Context info
         # QUERY MAY EXCEED  PROJECT LIMITS
-        try:
-            storeLocations = zipquery.get_store_from_zip(zipcode)
-        except ClientError:
-            storeLocations = []
+        storeLocations = zipquery.get_store_from_zip(zipcode)
 
         # Offer info
         odate = datetime.datetime.strptime(offerexp, "%m/%d/%Y")
@@ -88,15 +85,6 @@ class PassGenerator(object):
         cardInfo.addPrimaryField('redeemed', redeemed_field, '',
                                  changeMessage='Coupon has been redeemed.%@')
 
-        # # HACK TEST
-        # if not redeemed:
-        #     cardInfo.addAuxiliaryField('expires', offerexpdt, 'EXPIRES',
-        #                                changeMessage='Coupon updated to expire on %@.', type='Date')
-        # else:
-        #     cardInfo.addAuxiliaryField('expires', 'REDEEMED', 'EXPIRES',
-        #                                changeMessage='Coupon has been %@.')
-
-
         # Create pass object
         passfile = Pass(cardInfo,
                         passTypeIdentifier=passTypeIdentifier,
@@ -115,8 +103,6 @@ class PassGenerator(object):
             passfile.addLocation(lat, lng, 'Store nearby.')
 
         # HACK test location notification on iphone and android
-        # 7983 Playmor Terrace
-        passfile.addLocation(32.862709, -117.217561, 'Home nearby.')
         # 12760 High Bluff Drive
         passfile.addLocation(32.9503377, -117.2403383, 'Mobivity nearby.')
         # 12770 High Bluff Drive (Wifi location)

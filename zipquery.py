@@ -9,26 +9,41 @@ def get_store_from_zip(zipcode):
 
     # Lookup zipcode lat/lng bound
     # Using geocoding API
-    geo_key = GEOCODE_API_KEY
-    geo_client = googlemaps.Client(geo_key)
-    results = geo_client.geocode(zipcode)
-    ne = results[0]['geometry']['bounds']['northeast']
-    sw = results[0]['geometry']['bounds']['southwest']
+    try:
+        geo_key = GEOCODE_API_KEY
+        geo_client = googlemaps.Client(geo_key)
+        results = geo_client.geocode(zipcode)
+    except:
+        results = []
+
+    if len(results) > 0 and results[0]['geometry'].get('bounds'):
+        ne = results[0]['geometry']['bounds']['northeast']
+        sw = results[0]['geometry']['bounds']['southwest']
+    elif len(results) > 0 and results[0]['geometry'].get('viewport'):
+        ne = results[0]['geometry']['viewport']['northeast']
+        sw = results[0]['geometry']['viewport']['southwest']
+    else:
+        ne = {'lat': 0, 'lng': 0}
+        sw = {'lat': 0, 'lng': 0}
     bounds = (sw['lat'], ne['lat'], sw['lng'], ne['lng'])
-    logging.info('ZIP BOUNDS: {}'.format(bounds))
+    logging.error('ZIP {} BOUNDS: {}'.format(zipcode, bounds))
 
     # Query store locations within lat/lng bound
     # Depends on Christian's tables!
-    client = bigquery.Client(project=BIGQUERY_PROJECT_ID)
-    QUERY = """
-        SELECT lat,lng
-        FROM christian_playground.subway_coords
-        WHERE (lat BETWEEN {} AND {})
-        AND (lng BETWEEN {} AND {})
-    """.format(*bounds)
-    query = client.run_sync_query(QUERY)
-    query.timeout_ms = 1000
-    query.run()
-    logging.info('ZIP STORES: {}'.format(query.rows[:10]))
+    try:
+        client = bigquery.Client(project=BIGQUERY_PROJECT_ID)
+        QUERY = """
+            SELECT lat,lng
+            FROM christian_playground.subway_coords
+            WHERE (lat BETWEEN {} AND {})
+            AND (lng BETWEEN {} AND {})
+        """.format(*bounds)
+        query = client.run_sync_query(QUERY)
+        query.timeout_ms = 1000
+        query.run()
+        logging.info('ZIP STORES: {}'.format(query.rows[:10]))
+        return query.rows[:10]
+    except:
+        logging.info('BIGQUERY ERROR.')
+        return []
 
-    return query.rows[:10]
