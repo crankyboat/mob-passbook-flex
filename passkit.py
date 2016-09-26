@@ -351,6 +351,19 @@ class PasskitWebService(object):
                 return 400
 
 
+    def verify_pass(self, serialNumber):
+
+        with self.gds.transaction():
+            pass_key = self.gds.key('Passes', '{}'.format(serialNumber))
+            pass_entity = self.gds.get(pass_key)
+            if pass_entity and \
+                    not pass_entity['redeemed'] and \
+                    self.get_timestamp_from_date(pass_entity['offerExpiration']) > self.get_current_timestamp():
+                return 200
+            else:
+                return 400
+
+
     def list_passes_with_devicelibid(self):
 
         pass_query = self.gds.query(kind='Passes')

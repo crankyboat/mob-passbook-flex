@@ -1,6 +1,6 @@
 import unittest
 import zipquery
-from test_delayed_assert import expect, assert_expectations
+from delayed_assert import expect, assert_expectations
 
 class UtilTestCase(unittest.TestCase):
 

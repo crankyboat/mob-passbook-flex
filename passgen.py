@@ -11,7 +11,6 @@ except ImportError:
 import imgload
 import zipquery
 from passbook.models import Pass, Coupon, Barcode, BarcodeFormat
-from gcloud.exceptions import ClientError
 
 DEFAULT_TIMEZONE = 'US/Pacific'
 DEFAULT_LOGOTEXT = 'SUBWAY'

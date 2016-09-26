@@ -20,7 +20,7 @@ try:
 except ImportError:
     import json
 
-from flask import Flask, render_template, send_file, request, Response, make_response
+from flask import Flask, render_template, send_file, request, make_response
 from gcloud import storage, datastore
 from uuid import uuid4
 import hashlib
@@ -413,11 +413,37 @@ def redeem_pass():
         logging.error('REDEEM PUSHED.')
 
     return build_response(
-        'Serial: {}\nSuccess: {}'.format(
+        'Serial: {}\nRedeemed: {}'.format(
             request.args.get('serialNumber'),
             status == 200
         ),
-        status=status
+        status=200
+    )
+
+
+@app.route('/pass/verify', methods=['POST'])
+@requires_auth
+def verify_pass():
+
+    # EXPOSED TO HOOK SERVICE
+    # Requires basic auth
+    # Sends push notification to device
+
+    status = passkit.verify_pass(request.args.get('serialNumber'))
+    deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
+    logging.error('VERIFY API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
+
+    if status == 200 and deviceLibraryIdentifier:
+        logging.error('VERIFIED.')
+    else:
+        logging.error('VERIFICATION FAILED.')
+
+    return build_response(
+        'Serial: {}\nVerified: {}'.format(
+            request.args.get('serialNumber'),
+            status == 200 and deviceLibraryIdentifier
+        ),
+        status=200
     )
 
 

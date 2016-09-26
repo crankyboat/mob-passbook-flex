@@ -1,6 +1,6 @@
 import unittest
 from main import app
-from test_delayed_assert import expect, assert_expectations
+from delayed_assert import expect, assert_expectations
 from gcloud import storage, datastore
 try:
     import simplejson as json
