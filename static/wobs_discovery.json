@@ -1,0 +1,4384 @@
+{
+ "kind": "discovery#restDescription",
+ "discoveryVersion": "v1",
+ "id": "walletobjects:v1",
+ "name": "walletobjects",
+ "version": "v1",
+ "revision": "20131125",
+ "description": "The Wallet Objects API allows you to connect your business to millions of Google users and showcase your loyalty programs, offers, boarding passes, tickets, and more.",
+ "ownerDomain": "google.com",
+ "ownerName": "Google",
+ "icons": {
+  "x16": "http://www.google.com/images/icons/product/search-16.gif",
+  "x32": "http://www.google.com/images/icons/product/search-32.gif"
+ },
+ "protocol": "rest",
+ "baseUrl": "https://www.googleapis.com/walletobjects/v1/",
+ "basePath": "/walletobjects/v1/",
+ "rootUrl": "https://www.googleapis.com/",
+ "servicePath": "walletobjects/v1/",
+ "batchPath": "batch",
+ "parameters": {
+  "alt": {
+   "type": "string",
+   "description": "Data format for the response.",
+   "default": "json",
+   "enum": [
+    "json"
+   ],
+   "enumDescriptions": [
+    "Responses with Content-Type of application/json"
+   ],
+   "location": "query"
+  },
+  "fields": {
+   "type": "string",
+   "description": "Selector specifying which fields to include in a partial response.",
+   "location": "query"
+  },
+  "key": {
+   "type": "string",
+   "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+   "location": "query"
+  },
+  "oauth_token": {
+   "type": "string",
+   "description": "OAuth 2.0 token for the current user.",
+   "location": "query"
+  },
+  "prettyPrint": {
+   "type": "boolean",
+   "description": "Returns response with indentations and line breaks.",
+   "default": "true",
+   "location": "query"
+  },
+  "quotaUser": {
+   "type": "string",
+   "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Overrides userIp if both are provided.",
+   "location": "query"
+  },
+  "userIp": {
+   "type": "string",
+   "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
+   "location": "query"
+  }
+ },
+ "schemas": {
+  "Barcode": {
+   "id": "Barcode",
+   "type": "object",
+   "properties": {
+    "alternateText": {
+     "type": "string",
+     "description": "A human readable equivalent of the barcode value, used when the barcode cannot be scanned."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#barcode\".",
+     "default": "walletobjects#barcode"
+    },
+    "label": {
+     "type": "string",
+     "description": "The barcode label describing the contents of the barcode, such as \"OFFER CODE\" or \"MEMBER ID.\""
+    },
+    "type": {
+     "type": "string",
+     "description": "The type of barcode."
+    },
+    "value": {
+     "type": "string",
+     "description": "The value encoded in the barcode."
+    }
+   }
+  },
+  "BoardingPassClass": {
+   "id": "BoardingPassClass",
+   "type": "object",
+   "properties": {
+    "aircraftType": {
+     "type": "string",
+     "description": "Aircraft type"
+    },
+    "allowMultipleUsersPerObject": {
+     "type": "boolean",
+     "description": "Identifies whether multiple users will save the same object referencing this class. If true, each object saved will have the same ID. If false, each object saved will have a different ID. The default is false."
+    },
+    "arrivalAirportCode": {
+     "type": "string",
+     "description": "Arrival IATA airport code, e.g. SFO",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.update"
+      ]
+     }
+    },
+    "arrivalCityName": {
+     "type": "string",
+     "description": "Arrival city name, e.g. San Francisco"
+    },
+    "arrivalDateTimeActual": {
+     "$ref": "DateTime",
+     "description": "Currently known arrival date time (in arrival airport time zone)"
+    },
+    "arrivalDateTimeScheduled": {
+     "$ref": "DateTime",
+     "description": "Originally scheduled arrival date time (in arrival airport time zone)"
+    },
+    "arrivalGate": {
+     "type": "string",
+     "description": "Arrival gate, e.g. 57"
+    },
+    "arrivalTerminal": {
+     "type": "string",
+     "description": "Arrival airport terminal code, e.g. 2"
+    },
+    "arrivalTimeZone": {
+     "type": "string",
+     "description": "Olson id for the time zone of the arrival airport"
+    },
+    "boardingDateTime": {
+     "$ref": "DateTime",
+     "description": "Time at which flight boarding begins (in departure airport time zone)"
+    },
+    "carrierCode": {
+     "type": "string",
+     "description": "IATA airline code",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.update"
+      ]
+     }
+    },
+    "carrierLogoImage": {
+     "$ref": "Image",
+     "description": "Carrier logo"
+    },
+    "carrierName": {
+     "type": "string",
+     "description": "Carrier name"
+    },
+    "departureAirportCode": {
+     "type": "string",
+     "description": "Departure IATA airport code, e.g. BOS",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.update"
+      ]
+     }
+    },
+    "departureCityName": {
+     "type": "string",
+     "description": "Departure city name, e.g. Boston"
+    },
+    "departureDateTimeActual": {
+     "$ref": "DateTime",
+     "description": "Currently known departure date time (in departure airport time zone)"
+    },
+    "departureDateTimeScheduled": {
+     "$ref": "DateTime",
+     "description": "Originally scheduled departure date time (in departure airport time zone)",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.update"
+      ]
+     }
+    },
+    "departureGate": {
+     "type": "string",
+     "description": "Departure gate, e.g. B15"
+    },
+    "departureTerminal": {
+     "type": "string",
+     "description": "Departure airport terminal code, e.g. B"
+    },
+    "departureTimeZone": {
+     "type": "string",
+     "description": "Olson id for the time zone of the departure airport",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.update"
+      ]
+     }
+    },
+    "flightNumber": {
+     "type": "string",
+     "description": "Flight number, e.g. 758",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.update"
+      ]
+     }
+    },
+    "homepageUri": {
+     "$ref": "Uri",
+     "description": "The URI of your application's home page."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the object, those will be displayed first, followed by image modules data defined here on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the object, that will be displayed first, followed by info module data defined here on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with a class. Refer to the Using Templates section for further information."
+    },
+    "issuerName": {
+     "type": "string",
+     "description": "The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the object, that will be displayed first, followed by links module data defined here on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Objects platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "onboardServices": {
+     "type": "array",
+     "description": "Onboard services, e.g. Wifi, Meal",
+     "items": {
+      "type": "string"
+     }
+    },
+    "operatingCarrierCode": {
+     "type": "string",
+     "description": "IATA airline code of carrier actually flying the plane (if codeshare)"
+    },
+    "operatingCarrierName": {
+     "type": "string",
+     "description": "Carrier name of carrier actually flying the plane (if codeshare)"
+    },
+    "operatingFlightNumber": {
+     "type": "string",
+     "description": "Flight number, e.g. 1844, of carrier actually flying the plane (if codeshare)"
+    },
+    "renderSpecs": {
+     "type": "array",
+     "description": "Identifies the templates used for rendering fields in the Google Wallet app. Refer to the Using Templates section for more details.",
+     "items": {
+      "$ref": "RenderSpec"
+     },
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "review": {
+     "$ref": "CommonWalletObjectClassReview",
+     "description": "The review comments set by the Wallet Objects Platform when a class is marked approved or rejected."
+    },
+    "reviewStatus": {
+     "type": "string",
+     "description": "The status of the class. This field can be set to draft or underReview using the insert or update API calls.\n\nYou should set this field to draft when the class is under development. A draft class can only be seen by trusted testers who have access to your issuer account.\n\nYou should set this field to underReview when you believe the class is ready for review. An underReview class has the same visibility as a draft class, but is automatically sent to Google for approval.\n\nThe Wallet Objects Platform sets this field to approved when the class meets certain criteria. An approved class is visible to the public.\n\nThe Wallet Objects Platform sets this field to rejected when the class does not meet certain criteria. A rejected class can only be seen by trusted testers who have access to your issuer account.\n\nThe Wallet Objects Platform automatically increments the version of the class when the review status is changed to approved or rejected. \n\nRefer to the Class Approval Process section for further information.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "statusCode": {
+     "type": "string",
+     "description": "Flight status code, e.g. delayed Allowed values:  \n- unknown \n- scheduled \n- onTime \n- landed \n- delayed \n- cancelled \n- diverted \n- redirected \n- notOperational \n- noStatusCode"
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text modules data is also defined on the object, those will be displayed first, followed by text modules data defined here on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the class. When updating a class, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your class.\n\nNote the Wallet Objects platform might make edits to classes which will increment the version number. For example, the platform will increment this number when a change in reviewState from underReview to approved occurs.\n\nFollow these steps to make an update to a class:  \n- Get the latest version of the class. \n- Make edits to the class. \n- Increment the version. \n- Update the class.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    }
+   }
+  },
+  "BoardingPassClassAddMessageRequest": {
+   "id": "BoardingPassClassAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    },
+    "reviewStatus": {
+     "type": "string"
+    }
+   }
+  },
+  "BoardingPassClassAddMessageResponse": {
+   "id": "BoardingPassClassAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "BoardingPassClass"
+    }
+   }
+  },
+  "BoardingPassClassGetRequest": {
+   "id": "BoardingPassClassGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "BoardingPassClassMask"
+    }
+   }
+  },
+  "BoardingPassClassListRequest": {
+   "id": "BoardingPassClassListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "BoardingPassClassMask"
+    }
+   }
+  },
+  "BoardingPassClassListResponse": {
+   "id": "BoardingPassClassListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "BoardingPassClass"
+     }
+    }
+   }
+  },
+  "BoardingPassClassMask": {
+   "id": "BoardingPassClassMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "BoardingPassObject": {
+   "id": "BoardingPassObject",
+   "type": "object",
+   "properties": {
+    "barcode": {
+     "$ref": "Barcode",
+     "description": "The barcode type and value."
+    },
+    "boardingZone": {
+     "type": "string",
+     "description": "Zone for boarding, e.g. 2"
+    },
+    "classId": {
+     "type": "string",
+     "description": "The class associated with this object.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "classReference": {
+     "$ref": "BoardingPassClass",
+     "description": "A copy of the inherited fields of the parent class. These fields are retrieved during a GET."
+    },
+    "electronicTicket": {
+     "type": "boolean",
+     "description": "Whether this is an e-ticket"
+    },
+    "freqFlierAccountId": {
+     "type": "string",
+     "description": "Frequent flier number"
+    },
+    "freqFlierProgramName": {
+     "type": "string",
+     "description": "Frequent flyer program name"
+    },
+    "freqFlierTierLevel": {
+     "type": "string",
+     "description": "Frequent flier tier, e.g. Platinum"
+    },
+    "hasUsers": {
+     "type": "boolean",
+     "description": "Indicates if the Wallet Object has users. This field is set by the Wallet Objects Platform."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the class, the one defined here on the object will be displayed first, followed by the one defined on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with an object. Refer to the Using Templates section for further information."
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the class, the one defined here on the object will be displayed first, followed by those defined on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Object platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "passengerName": {
+     "$ref": "PassengerName",
+     "description": "Passenger name",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.update"
+      ]
+     }
+    },
+    "passengerStatus": {
+     "type": "array",
+     "description": "Passenger status codes, e.g. STBY for standby",
+     "items": {
+      "type": "string"
+     }
+    },
+    "precheckLogo": {
+     "$ref": "Image",
+     "description": "TSA precheck logo"
+    },
+    "recordLocator": {
+     "type": "string",
+     "description": "6 character PNR (reservation) record id, e.g. RXT53L"
+    },
+    "seat": {
+     "type": "string",
+     "description": "Seat number, e.g. 14C"
+    },
+    "seatClass": {
+     "type": "string",
+     "description": "Seat class, e.g. Economy"
+    },
+    "seatDescriptions": {
+     "type": "array",
+     "description": "Seat description strings, e.g. Aisle, Extra leg room",
+     "items": {
+      "type": "string"
+     }
+    },
+    "securitySelecteeStatus": {
+     "type": "string",
+     "description": "TSA security code, e.g. SSSS if flagged for screening"
+    },
+    "sequenceNumber": {
+     "type": "string",
+     "description": "Sequence number for boarding, e.g. 003"
+    },
+    "specialServiceCodes": {
+     "type": "array",
+     "description": "Special service codes, e.g. UMNR for unaccompanied minor",
+     "items": {
+      "type": "string"
+     }
+    },
+    "state": {
+     "type": "string",
+     "description": "The state of the Wallet Object. This field is used to determine how a Wallet Object is displayed in the Google Wallet app. For example, an inactive object is no longer displayed in the Google Wallet app. Valid values are:  \n- active: Object is active and displayed to with other active objects. \n- completed: Object has been used and is displayed with other used and expired objects. \n- expired: Object is no longer valid (validTimeInterval passed). \n- inactive: Object is inactive and hidden from view.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text module data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "ticketNumber": {
+     "type": "string",
+     "description": "Ticket number containing the coupon for the corresponding segment"
+    },
+    "validTimeInterval": {
+     "$ref": "TimeInterval",
+     "description": "The time period this object will be active and object can be used. An object's state will be changed to expired when this time period has passed."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the object. When updating an object, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your object.\n\nNote that the Wallet Objects platform might make edits to objects which will increment the version number. For example, the platform will increment this number when the state of an object changes to expired ( validTimeInterval passed).\n\nFollow these steps to make an update to an object:  \n- Get the latest version of the object. \n- Make edits to the object. \n- Increment the version. \n- Update the object.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    }
+   }
+  },
+  "BoardingPassObjectAddMessageRequest": {
+   "id": "BoardingPassObjectAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    }
+   }
+  },
+  "BoardingPassObjectAddMessageResponse": {
+   "id": "BoardingPassObjectAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "BoardingPassObject"
+    }
+   }
+  },
+  "BoardingPassObjectGetRequest": {
+   "id": "BoardingPassObjectGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "BoardingPassObjectMask"
+    }
+   }
+  },
+  "BoardingPassObjectListRequest": {
+   "id": "BoardingPassObjectListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "BoardingPassObjectMask"
+    }
+   }
+  },
+  "BoardingPassObjectListResponse": {
+   "id": "BoardingPassObjectListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "BoardingPassObject"
+     }
+    }
+   }
+  },
+  "BoardingPassObjectMask": {
+   "id": "BoardingPassObjectMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "CommonWalletObjectClassReview": {
+   "id": "CommonWalletObjectClassReview",
+   "type": "object",
+   "properties": {
+    "comments": {
+     "type": "string",
+     "description": "The explanation of why the class was marked approved or rejected."
+    }
+   }
+  },
+  "DateTime": {
+   "id": "DateTime",
+   "type": "object",
+   "properties": {
+    "date": {
+     "type": "string",
+     "description": "RFC 3339 formatted date-time. For example \"1985-04-12T23:20:50.52Z\" would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC.",
+     "format": "date-time"
+    }
+   }
+  },
+  "FieldMask": {
+   "id": "FieldMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "id": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "GenericClass": {
+   "id": "GenericClass",
+   "type": "object",
+   "properties": {
+    "allowMultipleUsersPerObject": {
+     "type": "boolean",
+     "description": "Identifies whether multiple users will save the same object referencing this class. If true, each object saved will have the same ID. If false, each object saved will have a different ID. The default is false."
+    },
+    "description": {
+     "type": "string",
+     "description": "The user-facing description. After 20 characters the remainder of the description will be displayed with ellipsis.",
+     "annotations": {
+      "required": [
+       "walletobjects.genericclass.insert"
+      ]
+     }
+    },
+    "homepageUri": {
+     "$ref": "Uri",
+     "description": "The URI of your application's home page."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the object, those will be displayed first, followed by image modules data defined here on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the object, that will be displayed first, followed by info module data defined here on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with a class. Refer to the Using Templates section for further information."
+    },
+    "issuerName": {
+     "type": "string",
+     "description": "The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#genericClass\".",
+     "default": "walletobjects#genericClass"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the object, that will be displayed first, followed by links module data defined here on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Objects platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "renderSpecs": {
+     "type": "array",
+     "description": "Identifies the templates used for rendering fields in the Google Wallet app. Refer to the Using Templates section for more details.",
+     "items": {
+      "$ref": "RenderSpec"
+     },
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "review": {
+     "$ref": "CommonWalletObjectClassReview",
+     "description": "The review comments set by the Wallet Objects Platform when a class is marked approved or rejected."
+    },
+    "reviewStatus": {
+     "type": "string",
+     "description": "The status of the class. This field can be set to draft or underReview using the insert or update API calls.\n\nYou should set this field to draft when the class is under development. A draft class can only be seen by trusted testers who have access to your issuer account.\n\nYou should set this field to underReview when you believe the class is ready for review. An underReview class has the same visibility as a draft class, but is automatically sent to Google for approval.\n\nThe Wallet Objects Platform sets this field to approved when the class meets certain criteria. An approved class is visible to the public.\n\nThe Wallet Objects Platform sets this field to rejected when the class does not meet certain criteria. A rejected class can only be seen by trusted testers who have access to your issuer account.\n\nThe Wallet Objects Platform automatically increments the version of the class when the review status is changed to approved or rejected. \n\nRefer to the Class Approval Process section for further information.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text modules data is also defined on the object, those will be displayed first, followed by text modules data defined here on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "title": {
+     "type": "string",
+     "description": "The user-facing title. After 20 characters the remainder of the title will be displayed with ellipsis.",
+     "annotations": {
+      "required": [
+       "walletobjects.genericclass.insert"
+      ]
+     }
+    },
+    "titleImage": {
+     "$ref": "Image",
+     "description": "The user-facing image displayed in the title section."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the class. When updating a class, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your class.\n\nNote the Wallet Objects platform might make edits to classes which will increment the version number. For example, the platform will increment this number when a change in reviewState from underReview to approved occurs.\n\nFollow these steps to make an update to a class:  \n- Get the latest version of the class. \n- Make edits to the class. \n- Increment the version. \n- Update the class.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    }
+   }
+  },
+  "GenericClassAddMessageRequest": {
+   "id": "GenericClassAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    },
+    "reviewStatus": {
+     "type": "string"
+    }
+   }
+  },
+  "GenericClassAddMessageResponse": {
+   "id": "GenericClassAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "GenericClass"
+    }
+   }
+  },
+  "GenericClassGetRequest": {
+   "id": "GenericClassGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GenericClassMask"
+    }
+   }
+  },
+  "GenericClassListRequest": {
+   "id": "GenericClassListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GenericClassMask"
+    }
+   }
+  },
+  "GenericClassListResponse": {
+   "id": "GenericClassListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "GenericClass"
+     }
+    }
+   }
+  },
+  "GenericClassMask": {
+   "id": "GenericClassMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "GenericObject": {
+   "id": "GenericObject",
+   "type": "object",
+   "properties": {
+    "barcode": {
+     "$ref": "Barcode",
+     "description": "The barcode type and value."
+    },
+    "classId": {
+     "type": "string",
+     "description": "The class associated with this object.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "classReference": {
+     "$ref": "GenericClass",
+     "description": "A copy of the inherited fields of the parent class. These fields are retrieved during a GET."
+    },
+    "hasUsers": {
+     "type": "boolean",
+     "description": "Indicates if the Wallet Object has users. This field is set by the Wallet Objects Platform."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the class, the one defined here on the object will be displayed first, followed by the one defined on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with an object. Refer to the Using Templates section for further information."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#genericObject\".",
+     "default": "walletobjects#genericObject"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the class, the one defined here on the object will be displayed first, followed by those defined on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Object platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "state": {
+     "type": "string",
+     "description": "The state of the Wallet Object. This field is used to determine how a Wallet Object is displayed in the Google Wallet app. For example, an inactive object is no longer displayed in the Google Wallet app. Valid values are:  \n- active: Object is active and displayed to with other active objects. \n- completed: Object has been used and is displayed with other used and expired objects. \n- expired: Object is no longer valid (validTimeInterval passed). \n- inactive: Object is inactive and hidden from view.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text module data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "validTimeInterval": {
+     "$ref": "TimeInterval",
+     "description": "The time period this object will be active and object can be used. An object's state will be changed to expired when this time period has passed."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the object. When updating an object, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your object.\n\nNote that the Wallet Objects platform might make edits to objects which will increment the version number. For example, the platform will increment this number when the state of an object changes to expired ( validTimeInterval passed).\n\nFollow these steps to make an update to an object:  \n- Get the latest version of the object. \n- Make edits to the object. \n- Increment the version. \n- Update the object.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    }
+   }
+  },
+  "GenericObjectAddMessageRequest": {
+   "id": "GenericObjectAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    }
+   }
+  },
+  "GenericObjectAddMessageResponse": {
+   "id": "GenericObjectAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "GenericObject"
+    }
+   }
+  },
+  "GenericObjectGetRequest": {
+   "id": "GenericObjectGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GenericObjectMask"
+    }
+   }
+  },
+  "GenericObjectListRequest": {
+   "id": "GenericObjectListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GenericObjectMask"
+    }
+   }
+  },
+  "GenericObjectListResponse": {
+   "id": "GenericObjectListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "GenericObject"
+     }
+    }
+   }
+  },
+  "GenericObjectMask": {
+   "id": "GenericObjectMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "GiftCardClass": {
+   "id": "GiftCardClass",
+   "type": "object",
+   "properties": {
+    "allowMultipleUsersPerObject": {
+     "type": "boolean",
+     "description": "Identifies whether multiple users will save the same object referencing this class. If true, each object saved will have the same ID. If false, each object saved will have a different ID. The default is false."
+    },
+    "homepageUri": {
+     "$ref": "Uri",
+     "description": "The URI of your application's home page."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the object, those will be displayed first, followed by image modules data defined here on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the object, that will be displayed first, followed by info module data defined here on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with a class. Refer to the Using Templates section for further information."
+    },
+    "issuerName": {
+     "type": "string",
+     "description": "The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#giftCardClass\".",
+     "default": "walletobjects#giftCardClass"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the object, that will be displayed first, followed by links module data defined here on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Objects platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "merchantName": {
+     "type": "string",
+     "description": "Merchant name, such as \"Adam's Apparel\". The Google Wallet app will display an ellipsis after the first 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.giftcardclass.insert"
+      ]
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "programLogo": {
+     "$ref": "Image",
+     "description": "The logo of the gift card program or company. This logo is displayed in both the expanded and list views of the Google Wallet app.",
+     "annotations": {
+      "required": [
+       "walletobjects.giftcardclass.insert"
+      ]
+     }
+    },
+    "renderSpecs": {
+     "type": "array",
+     "description": "Identifies the templates used for rendering fields in the Google Wallet app. Refer to the Using Templates section for more details.",
+     "items": {
+      "$ref": "RenderSpec"
+     },
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "review": {
+     "$ref": "CommonWalletObjectClassReview",
+     "description": "The review comments set by the Wallet Objects Platform when a class is marked approved or rejected."
+    },
+    "reviewStatus": {
+     "type": "string",
+     "description": "The status of the class. This field can be set to draft or underReview using the insert or update API calls.\n\nYou should set this field to draft when the class is under development. A draft class can only be seen by trusted testers who have access to your issuer account.\n\nYou should set this field to underReview when you believe the class is ready for review. An underReview class has the same visibility as a draft class, but is automatically sent to Google for approval.\n\nThe Wallet Objects Platform sets this field to approved when the class meets certain criteria. An approved class is visible to the public.\n\nThe Wallet Objects Platform sets this field to rejected when the class does not meet certain criteria. A rejected class can only be seen by trusted testers who have access to your issuer account.\n\nThe Wallet Objects Platform automatically increments the version of the class when the review status is changed to approved or rejected. \n\nRefer to the Class Approval Process section for further information.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text modules data is also defined on the object, those will be displayed first, followed by text modules data defined here on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the class. When updating a class, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your class.\n\nNote the Wallet Objects platform might make edits to classes which will increment the version number. For example, the platform will increment this number when a change in reviewState from underReview to approved occurs.\n\nFollow these steps to make an update to a class:  \n- Get the latest version of the class. \n- Make edits to the class. \n- Increment the version. \n- Update the class.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    }
+   }
+  },
+  "GiftCardClassAddMessageRequest": {
+   "id": "GiftCardClassAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    },
+    "reviewStatus": {
+     "type": "string"
+    }
+   }
+  },
+  "GiftCardClassAddMessageResponse": {
+   "id": "GiftCardClassAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "GiftCardClass"
+    }
+   }
+  },
+  "GiftCardClassGetRequest": {
+   "id": "GiftCardClassGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GiftCardClassMask"
+    }
+   }
+  },
+  "GiftCardClassListRequest": {
+   "id": "GiftCardClassListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GiftCardClassMask"
+    }
+   }
+  },
+  "GiftCardClassListResponse": {
+   "id": "GiftCardClassListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination"
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "GiftCardClass"
+     }
+    }
+   }
+  },
+  "GiftCardClassMask": {
+   "id": "GiftCardClassMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "GiftCardObject": {
+   "id": "GiftCardObject",
+   "type": "object",
+   "properties": {
+    "balance": {
+     "$ref": "Money",
+     "description": "Gift card balance."
+    },
+    "balanceUpdateTime": {
+     "$ref": "DateTime",
+     "description": "Time when the balance was last updated."
+    },
+    "barcode": {
+     "$ref": "Barcode",
+     "description": "The barcode type and value."
+    },
+    "cardNumber": {
+     "type": "string",
+     "description": "Gift card number, such as \"123123123\".",
+     "annotations": {
+      "required": [
+       "walletobjects.giftcardobject.insert"
+      ]
+     }
+    },
+    "classId": {
+     "type": "string",
+     "description": "The class associated with this object.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "classReference": {
+     "$ref": "GiftCardClass",
+     "description": "A copy of the inherited fields of the parent class. These fields are retrieved during a GET."
+    },
+    "eventNumber": {
+     "type": "string",
+     "description": "Gift card event number - few gift cards have event number."
+    },
+    "hasUsers": {
+     "type": "boolean",
+     "description": "Indicates if the Wallet Object has users. This field is set by the Wallet Objects Platform."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the class, the one defined here on the object will be displayed first, followed by the one defined on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with an object. Refer to the Using Templates section for further information."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#giftCardObject\".",
+     "default": "walletobjects#giftCardObject"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the class, the one defined here on the object will be displayed first, followed by those defined on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Object platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "pin": {
+     "type": "string",
+     "description": "Gift card PIN."
+    },
+    "state": {
+     "type": "string",
+     "description": "The state of the Wallet Object. This field is used to determine how a Wallet Object is displayed in the Google Wallet app. For example, an inactive object is no longer displayed in the Google Wallet app. Valid values are:  \n- active: Object is active and displayed to with other active objects. \n- completed: Object has been used and is displayed with other used and expired objects. \n- expired: Object is no longer valid (validTimeInterval passed). \n- inactive: Object is inactive and hidden from view.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text module data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "validTimeInterval": {
+     "$ref": "TimeInterval",
+     "description": "The time period this object will be active and object can be used. An object's state will be changed to expired when this time period has passed."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the object. When updating an object, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your object.\n\nNote that the Wallet Objects platform might make edits to objects which will increment the version number. For example, the platform will increment this number when the state of an object changes to expired ( validTimeInterval passed).\n\nFollow these steps to make an update to an object:  \n- Get the latest version of the object. \n- Make edits to the object. \n- Increment the version. \n- Update the object.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    }
+   }
+  },
+  "GiftCardObjectAddMessageRequest": {
+   "id": "GiftCardObjectAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    }
+   }
+  },
+  "GiftCardObjectAddMessageResponse": {
+   "id": "GiftCardObjectAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "GiftCardObject"
+    }
+   }
+  },
+  "GiftCardObjectGetRequest": {
+   "id": "GiftCardObjectGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GiftCardObjectMask"
+    }
+   }
+  },
+  "GiftCardObjectListRequest": {
+   "id": "GiftCardObjectListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "GiftCardObjectMask"
+    }
+   }
+  },
+  "GiftCardObjectListResponse": {
+   "id": "GiftCardObjectListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination"
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "GiftCardObject"
+     }
+    }
+   }
+  },
+  "GiftCardObjectMask": {
+   "id": "GiftCardObjectMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "Image": {
+   "id": "Image",
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#image\".",
+     "default": "walletobjects#image"
+    },
+    "sourceUri": {
+     "$ref": "Uri",
+     "description": "The URI for an image."
+    }
+   }
+  },
+  "ImageModuleData": {
+   "id": "ImageModuleData",
+   "type": "object",
+   "properties": {
+    "mainImage": {
+     "$ref": "Image",
+     "description": "A 100% width image."
+    }
+   }
+  },
+  "InfoModuleData": {
+   "id": "InfoModuleData",
+   "type": "object",
+   "properties": {
+    "hexBackgroundColor": {
+     "type": "string",
+     "description": "The background color for the Info Module. The format is #hhhhhh where h is a hex digit."
+    },
+    "hexFontColor": {
+     "type": "string",
+     "description": "The color for the font in this Info Module. The format is #hhhhhh where h is a hex digit."
+    },
+    "labelValueRows": {
+     "type": "array",
+     "description": "A list of rows. Refer to the  Using Templates section for information on how to specify rows and columns in the infoModuleData.",
+     "items": {
+      "$ref": "LabelValueRow"
+     }
+    },
+    "showLastUpdateTime": {
+     "type": "boolean",
+     "description": "Display the last update time of the Wallet Object."
+    }
+   }
+  },
+  "LabelValue": {
+   "id": "LabelValue",
+   "type": "object",
+   "description": "A pair of text strings to be displayed in a table.",
+   "properties": {
+    "label": {
+     "type": "string",
+     "description": "The label for a specific row and column."
+    },
+    "value": {
+     "type": "string",
+     "description": "The value for a specific row and column."
+    }
+   }
+  },
+  "LabelValueRow": {
+   "id": "LabelValueRow",
+   "type": "object",
+   "properties": {
+    "columns": {
+     "type": "array",
+     "description": "A list of columns. Refer to the  Using Templates section for information on how to specify rows and columns in the Info Module.",
+     "items": {
+      "$ref": "LabelValue"
+     }
+    },
+    "hexBackgroundColor": {
+     "type": "string",
+     "description": "The background color for this row. The format is #hhhhhh where h is a hex digit."
+    },
+    "hexFontColor": {
+     "type": "string",
+     "description": "The color for the font in this row. The format is #hhhhhh where h is a hex digit."
+    }
+   }
+  },
+  "LatLongPoint": {
+   "id": "LatLongPoint",
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#latLongPoint\".",
+     "default": "walletobjects#latLongPoint"
+    },
+    "latitude": {
+     "type": "number",
+     "description": "The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.",
+     "format": "double"
+    },
+    "longitude": {
+     "type": "number",
+     "description": "The longitude specified in the range -180.0 through +180.0, both inclusive. Values outside these bounds will be rejected.",
+     "format": "double"
+    }
+   }
+  },
+  "LinksModuleData": {
+   "id": "LinksModuleData",
+   "type": "object",
+   "properties": {
+    "uris": {
+     "type": "array",
+     "description": "The list of URIs.",
+     "items": {
+      "$ref": "Uri"
+     }
+    }
+   }
+  },
+  "LoyaltyClass": {
+   "id": "LoyaltyClass",
+   "type": "object",
+   "properties": {
+    "accountIdLabel": {
+     "type": "string",
+     "description": "The account ID label, such as \"Member ID.\" Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens."
+    },
+    "accountNameLabel": {
+     "type": "string",
+     "description": "The account name label, such as \"Member Name.\" Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens."
+    },
+    "allowMultipleUsersPerObject": {
+     "type": "boolean",
+     "description": "Identifies whether multiple users will save the same object referencing this class. If true, each object saved will have the same ID. If false, each object saved will have a different ID. The default is false."
+    },
+    "homepageUri": {
+     "$ref": "Uri",
+     "description": "The URI of your application's home page."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the object, those will be displayed first, followed by image modules data defined here on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the object, that will be displayed first, followed by info module data defined here on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with a class. Refer to the Using Templates section for further information."
+    },
+    "issuerName": {
+     "type": "string",
+     "description": "The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#loyaltyClass\".",
+     "default": "walletobjects#loyaltyClass"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the object, that will be displayed first, followed by links module data defined here on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Objects platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "programLogo": {
+     "$ref": "Image",
+     "description": "The logo of the loyalty program or company. This logo is displayed in both the expanded and list views of the Google Wallet app.",
+     "annotations": {
+      "required": [
+       "walletobjects.loyaltyclass.insert"
+      ]
+     }
+    },
+    "programName": {
+     "type": "string",
+     "description": "The program name, such as \"Adam's Apparel\". The Google Wallet app will display an ellipsis after the first 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.loyaltyclass.insert"
+      ]
+     }
+    },
+    "renderSpecs": {
+     "type": "array",
+     "description": "Identifies the templates used for rendering fields in the Google Wallet app. Refer to the Using Templates section for more details.",
+     "items": {
+      "$ref": "RenderSpec"
+     },
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "review": {
+     "$ref": "CommonWalletObjectClassReview",
+     "description": "The review comments set by the Wallet Objects Platform when a class is marked approved or rejected."
+    },
+    "reviewStatus": {
+     "type": "string",
+     "description": "The status of the class. This field can be set to draft or underReview using the insert or update API calls.\n\nYou should set this field to draft when the class is under development. A draft class can only be seen by trusted testers who have access to your issuer account.\n\nYou should set this field to underReview when you believe the class is ready for review. An underReview class has the same visibility as a draft class, but is automatically sent to Google for approval.\n\nThe Wallet Objects Platform sets this field to approved when the class meets certain criteria. An approved class is visible to the public.\n\nThe Wallet Objects Platform sets this field to rejected when the class does not meet certain criteria. A rejected class can only be seen by trusted testers who have access to your issuer account.\n\nThe Wallet Objects Platform automatically increments the version of the class when the review status is changed to approved or rejected. \n\nRefer to the Class Approval Process section for further information.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "rewardsTier": {
+     "type": "string",
+     "description": "The rewards tier, such as \"Gold\" or \"Platinum.\" Recommended maximum length is 7 characters to ensure full string is displayed on smaller screens."
+    },
+    "rewardsTierLabel": {
+     "type": "string",
+     "description": "The rewards tier label, such as \"Rewards Tier.\" Recommended maximum length is 7 characters to ensure full string is displayed on smaller screens."
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text modules data is also defined on the object, those will be displayed first, followed by text modules data defined here on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the class. When updating a class, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your class.\n\nNote the Wallet Objects platform might make edits to classes which will increment the version number. For example, the platform will increment this number when a change in reviewState from underReview to approved occurs.\n\nFollow these steps to make an update to a class:  \n- Get the latest version of the class. \n- Make edits to the class. \n- Increment the version. \n- Update the class.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    }
+   }
+  },
+  "LoyaltyClassAddMessageRequest": {
+   "id": "LoyaltyClassAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    },
+    "reviewStatus": {
+     "type": "string"
+    }
+   }
+  },
+  "LoyaltyClassAddMessageResponse": {
+   "id": "LoyaltyClassAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "LoyaltyClass"
+    }
+   }
+  },
+  "LoyaltyClassGetRequest": {
+   "id": "LoyaltyClassGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "LoyaltyClassMask"
+    }
+   }
+  },
+  "LoyaltyClassListRequest": {
+   "id": "LoyaltyClassListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "LoyaltyClassMask"
+    }
+   }
+  },
+  "LoyaltyClassListResponse": {
+   "id": "LoyaltyClassListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "LoyaltyClass"
+     }
+    }
+   }
+  },
+  "LoyaltyClassMask": {
+   "id": "LoyaltyClassMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "LoyaltyObject": {
+   "id": "LoyaltyObject",
+   "type": "object",
+   "properties": {
+    "accountId": {
+     "type": "string",
+     "description": "The loyalty account identifier. Recommended maximum length is 20 characters."
+    },
+    "accountName": {
+     "type": "string",
+     "description": "The loyalty account holder name, such as \"John Smith.\" Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens."
+    },
+    "barcode": {
+     "$ref": "Barcode",
+     "description": "The barcode type and value."
+    },
+    "classId": {
+     "type": "string",
+     "description": "The class associated with this object.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "classReference": {
+     "$ref": "LoyaltyClass",
+     "description": "A copy of the inherited fields of the parent class. These fields are retrieved during a GET."
+    },
+    "hasUsers": {
+     "type": "boolean",
+     "description": "Indicates if the Wallet Object has users. This field is set by the Wallet Objects Platform."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the class, the one defined here on the object will be displayed first, followed by the one defined on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with an object. Refer to the Using Templates section for further information."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#loyaltyObject\".",
+     "default": "walletobjects#loyaltyObject"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the class, the one defined here on the object will be displayed first, followed by those defined on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Object platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "loyaltyPoints": {
+     "$ref": "LoyaltyPoints",
+     "description": "The loyalty reward points label, balance, and type."
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "state": {
+     "type": "string",
+     "description": "The state of the Wallet Object. This field is used to determine how a Wallet Object is displayed in the Google Wallet app. For example, an inactive object is no longer displayed in the Google Wallet app. Valid values are:  \n- active: Object is active and displayed to with other active objects. \n- completed: Object has been used and is displayed with other used and expired objects. \n- expired: Object is no longer valid (validTimeInterval passed). \n- inactive: Object is inactive and hidden from view.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text module data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "validTimeInterval": {
+     "$ref": "TimeInterval",
+     "description": "The time period this object will be active and object can be used. An object's state will be changed to expired when this time period has passed."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the object. When updating an object, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your object.\n\nNote that the Wallet Objects platform might make edits to objects which will increment the version number. For example, the platform will increment this number when the state of an object changes to expired ( validTimeInterval passed).\n\nFollow these steps to make an update to an object:  \n- Get the latest version of the object. \n- Make edits to the object. \n- Increment the version. \n- Update the object.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    }
+   }
+  },
+  "LoyaltyObjectAddMessageRequest": {
+   "id": "LoyaltyObjectAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    }
+   }
+  },
+  "LoyaltyObjectAddMessageResponse": {
+   "id": "LoyaltyObjectAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "LoyaltyObject"
+    }
+   }
+  },
+  "LoyaltyObjectGetRequest": {
+   "id": "LoyaltyObjectGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "LoyaltyObjectMask"
+    }
+   }
+  },
+  "LoyaltyObjectListRequest": {
+   "id": "LoyaltyObjectListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "LoyaltyObjectMask"
+    }
+   }
+  },
+  "LoyaltyObjectListResponse": {
+   "id": "LoyaltyObjectListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "LoyaltyObject"
+     }
+    }
+   }
+  },
+  "LoyaltyObjectMask": {
+   "id": "LoyaltyObjectMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "LoyaltyPoints": {
+   "id": "LoyaltyPoints",
+   "type": "object",
+   "properties": {
+    "balance": {
+     "$ref": "LoyaltyPointsBalance",
+     "description": "The account holder's loyalty point balance, such as \"500\" or \"$10.00.\""
+    },
+    "label": {
+     "type": "string",
+     "description": "The loyalty points label, such as \"Points.\""
+    },
+    "pointsType": {
+     "type": "string",
+     "description": "The type of loyalty points, such as \"points\" or \"miles.\""
+    },
+    "pointsValidInterval": {
+     "$ref": "TimeInterval",
+     "description": "The time interval after which the points will expire. Points will no longer be displayed in the Google Wallet app after points have expired."
+    }
+   }
+  },
+  "LoyaltyPointsBalance": {
+   "id": "LoyaltyPointsBalance",
+   "type": "object",
+   "properties": {
+    "double": {
+     "type": "number",
+     "description": "The double form of a balance. Only one of these subtypes (string, int, double, money) should be populated.",
+     "format": "double"
+    },
+    "int": {
+     "type": "integer",
+     "description": "The integer form of a balance. Only one of these subtypes (string, int, double, money) should be populated.",
+     "format": "int32"
+    },
+    "money": {
+     "$ref": "Money",
+     "description": "The money form of a balance. Only one of these subtypes (string, int, double, money) should be populated."
+    },
+    "string": {
+     "type": "string",
+     "description": "The string form of a balance. Only one of these subtypes (string, int, double, money) should be populated."
+    }
+   }
+  },
+  "Money": {
+   "id": "Money",
+   "type": "object",
+   "properties": {
+    "currencyCode": {
+     "type": "string",
+     "description": "The currency code, such as \"USD\" or \"EUR.\""
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#money\".",
+     "default": "walletobjects#money"
+    },
+    "micros": {
+     "type": "string",
+     "description": "The unit of money amount in micros. For example, $1 USD would be represented as 1000000 micros.",
+     "format": "int64"
+    }
+   }
+  },
+  "OfferClass": {
+   "id": "OfferClass",
+   "type": "object",
+   "properties": {
+    "allowMultipleUsersPerObject": {
+     "type": "boolean",
+     "description": "Identifies whether multiple users will save the same object referencing this class. If true, each object saved will have the same ID. If false, each object saved will have a different ID. The default is false."
+    },
+    "details": {
+     "type": "string",
+     "description": "The details of the offer. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens."
+    },
+    "distributionTimeInterval": {
+     "$ref": "TimeInterval",
+     "description": "The redemption time period for the offer. The offer is valid as soon as it is saved and has no expiration date if this field isn't set."
+    },
+    "finePrint": {
+     "type": "string",
+     "description": "The fine print or terms of the offer, such as \"20% off any t-shirt at Adam's Apparel.\" Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens."
+    },
+    "helpUri": {
+     "$ref": "Uri",
+     "description": "The help link for the offer, such as http://myownpersonaldomain.com/help"
+    },
+    "homepageUri": {
+     "$ref": "Uri",
+     "description": "The URI of your application's home page."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the object, those will be displayed first, followed by image modules data defined here on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the object, that will be displayed first, followed by info module data defined here on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with a class. Refer to the Using Templates section for further information."
+    },
+    "issuerName": {
+     "type": "string",
+     "description": "The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#offerClass\".",
+     "default": "walletobjects#offerClass"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the object, that will be displayed first, followed by links module data defined here on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Objects platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "provider": {
+     "type": "string",
+     "description": "The offer provider (either the aggregator name or merchant name). Recommended maximum length is 12 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "redemptionChannel": {
+     "type": "string",
+     "description": "The redemption channels applicable to this offer.",
+     "annotations": {
+      "required": [
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "renderSpecs": {
+     "type": "array",
+     "description": "Identifies the templates used for rendering fields in the Google Wallet app. Refer to the Using Templates section for more details.",
+     "items": {
+      "$ref": "RenderSpec"
+     },
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "review": {
+     "$ref": "CommonWalletObjectClassReview",
+     "description": "The review comments set by the Wallet Objects Platform when a class is marked approved or rejected."
+    },
+    "reviewStatus": {
+     "type": "string",
+     "description": "The status of the class. This field can be set to draft or underReview using the insert or update API calls.\n\nYou should set this field to draft when the class is under development. A draft class can only be seen by trusted testers who have access to your issuer account.\n\nYou should set this field to underReview when you believe the class is ready for review. An underReview class has the same visibility as a draft class, but is automatically sent to Google for approval.\n\nThe Wallet Objects Platform sets this field to approved when the class meets certain criteria. An approved class is visible to the public.\n\nThe Wallet Objects Platform sets this field to rejected when the class does not meet certain criteria. A rejected class can only be seen by trusted testers who have access to your issuer account.\n\nThe Wallet Objects Platform automatically increments the version of the class when the review status is changed to approved or rejected. \n\nRefer to the Class Approval Process section for further information.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.genericclass.insert",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text modules data is also defined on the object, those will be displayed first, followed by text modules data defined here on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "title": {
+     "type": "string",
+     "description": "The title of the offer, such as \"20% off any t-shirt.\" Recommended maximum length is 60 characters to ensure full string is displayed on smaller screens.",
+     "annotations": {
+      "required": [
+       "walletobjects.offerclass.insert"
+      ]
+     }
+    },
+    "titleImage": {
+     "$ref": "Image",
+     "description": "The title image of the offer. This image is displayed in both the expanded and list views of the Google Wallet app."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the class. When updating a class, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your class.\n\nNote the Wallet Objects platform might make edits to classes which will increment the version number. For example, the platform will increment this number when a change in reviewState from underReview to approved occurs.\n\nFollow these steps to make an update to a class:  \n- Get the latest version of the class. \n- Make edits to the class. \n- Increment the version. \n- Update the class.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassclass.insert",
+       "walletobjects.boardingpassclass.patch",
+       "walletobjects.boardingpassclass.update",
+       "walletobjects.genericclass.insert",
+       "walletobjects.genericclass.patch",
+       "walletobjects.genericclass.update",
+       "walletobjects.loyaltyclass.insert",
+       "walletobjects.loyaltyclass.patch",
+       "walletobjects.loyaltyclass.update",
+       "walletobjects.offerclass.insert",
+       "walletobjects.offerclass.patch",
+       "walletobjects.offerclass.update"
+      ]
+     }
+    }
+   }
+  },
+  "OfferClassAddMessageRequest": {
+   "id": "OfferClassAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    },
+    "reviewStatus": {
+     "type": "string"
+    }
+   }
+  },
+  "OfferClassAddMessageResponse": {
+   "id": "OfferClassAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "OfferClass"
+    }
+   }
+  },
+  "OfferClassGetRequest": {
+   "id": "OfferClassGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "OfferClassMask"
+    }
+   }
+  },
+  "OfferClassListRequest": {
+   "id": "OfferClassListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "OfferClassMask"
+    }
+   }
+  },
+  "OfferClassListResponse": {
+   "id": "OfferClassListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "OfferClass"
+     }
+    }
+   }
+  },
+  "OfferClassMask": {
+   "id": "OfferClassMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "OfferObject": {
+   "id": "OfferObject",
+   "type": "object",
+   "properties": {
+    "barcode": {
+     "$ref": "Barcode",
+     "description": "The barcode type and value."
+    },
+    "classId": {
+     "type": "string",
+     "description": "The class associated with this object.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "classReference": {
+     "$ref": "OfferClass",
+     "description": "A copy of the inherited fields of the parent class. These fields are retrieved during a GET."
+    },
+    "hasUsers": {
+     "type": "boolean",
+     "description": "Indicates if the Wallet Object has users. This field is set by the Wallet Objects Platform."
+    },
+    "id": {
+     "type": "string",
+     "description": "The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, '_', or '-'.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    },
+    "imageModulesData": {
+     "type": "array",
+     "description": "Image module data. If image modules data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "ImageModuleData"
+     }
+    },
+    "infoModuleData": {
+     "$ref": "InfoModuleData",
+     "description": "Info module data. If info module data is also defined on the class, the one defined here on the object will be displayed first, followed by the one defined on the class."
+    },
+    "issuerData": {
+     "$ref": "TypedValue",
+     "description": "Identifies integrator-defined data. You can use this as a key-value pair map to store any data you want to associate with an object. Refer to the Using Templates section for further information."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#offerObject\".",
+     "default": "walletobjects#offerObject"
+    },
+    "linksModuleData": {
+     "$ref": "LinksModuleData",
+     "description": "Links module data. If links module data is also defined on the class, the one defined here on the object will be displayed first, followed by those defined on the class."
+    },
+    "locations": {
+     "type": "array",
+     "description": "The list of locations where the Wallet Object can be used. The Wallet Object platform uses this information to trigger geolocated notifications to users. Note that locations in the object override locations in the class which override locations in the Google Places ID.",
+     "items": {
+      "$ref": "LatLongPoint"
+     }
+    },
+    "messages": {
+     "type": "array",
+     "description": "An array of messages displayed in the Google Wallet app. All users of this Wallet Object will receive its associated messages.",
+     "items": {
+      "$ref": "WalletObjectMessage"
+     }
+    },
+    "state": {
+     "type": "string",
+     "description": "The state of the Wallet Object. This field is used to determine how a Wallet Object is displayed in the Google Wallet app. For example, an inactive object is no longer displayed in the Google Wallet app. Valid values are:  \n- active: Object is active and displayed to with other active objects. \n- completed: Object has been used and is displayed with other used and expired objects. \n- expired: Object is no longer valid (validTimeInterval passed). \n- inactive: Object is inactive and hidden from view.",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.genericobject.insert",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.offerobject.insert"
+      ]
+     }
+    },
+    "textModulesData": {
+     "type": "array",
+     "description": "Text module data. If text module data is also defined on the class, the ones defined here on the object will be displayed first, followed by those defined on the class.",
+     "items": {
+      "$ref": "TextModuleData"
+     }
+    },
+    "validTimeInterval": {
+     "$ref": "TimeInterval",
+     "description": "The time period this object will be active and object can be used. An object's state will be changed to expired when this time period has passed."
+    },
+    "version": {
+     "type": "string",
+     "description": "The current version of the object. When updating an object, you must specify the current version + 1 allowing the platform to ensure you are updating the most recent version of your object.\n\nNote that the Wallet Objects platform might make edits to objects which will increment the version number. For example, the platform will increment this number when the state of an object changes to expired ( validTimeInterval passed).\n\nFollow these steps to make an update to an object:  \n- Get the latest version of the object. \n- Make edits to the object. \n- Increment the version. \n- Update the object.",
+     "format": "int64",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.patch",
+       "walletobjects.boardingpassobject.update",
+       "walletobjects.genericobject.insert",
+       "walletobjects.genericobject.patch",
+       "walletobjects.genericobject.update",
+       "walletobjects.loyaltyobject.insert",
+       "walletobjects.loyaltyobject.patch",
+       "walletobjects.loyaltyobject.update",
+       "walletobjects.offerobject.insert",
+       "walletobjects.offerobject.patch",
+       "walletobjects.offerobject.update"
+      ]
+     }
+    }
+   }
+  },
+  "OfferObjectAddMessageRequest": {
+   "id": "OfferObjectAddMessageRequest",
+   "type": "object",
+   "properties": {
+    "message": {
+     "$ref": "WalletObjectMessage"
+    }
+   }
+  },
+  "OfferObjectAddMessageResponse": {
+   "id": "OfferObjectAddMessageResponse",
+   "type": "object",
+   "properties": {
+    "resource": {
+     "$ref": "OfferObject"
+    }
+   }
+  },
+  "OfferObjectGetRequest": {
+   "id": "OfferObjectGetRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "OfferObjectMask"
+    }
+   }
+  },
+  "OfferObjectListRequest": {
+   "id": "OfferObjectListRequest",
+   "type": "object",
+   "properties": {
+    "resultMask": {
+     "$ref": "OfferObjectMask"
+    }
+   }
+  },
+  "OfferObjectListResponse": {
+   "id": "OfferObjectListResponse",
+   "type": "object",
+   "properties": {
+    "pagination": {
+     "$ref": "Pagination",
+     "description": "Nested object containing pagination information."
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "$ref": "OfferObject"
+     }
+    }
+   }
+  },
+  "OfferObjectMask": {
+   "id": "OfferObjectMask",
+   "type": "object",
+   "properties": {
+    "fields": {
+     "type": "array",
+     "items": {
+      "$ref": "FieldMask"
+     }
+    },
+    "projection": {
+     "type": "string"
+    }
+   }
+  },
+  "Pagination": {
+   "id": "Pagination",
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#pagination\".",
+     "default": "walletobjects#pagination"
+    },
+    "nextPageToken": {
+     "type": "string",
+     "description": "Page token to send to fetch the next page."
+    },
+    "resultsPerPage": {
+     "type": "integer",
+     "description": "Number of results returned in this page.",
+     "format": "int32"
+    }
+   }
+  },
+  "PassengerName": {
+   "id": "PassengerName",
+   "type": "object",
+   "properties": {
+    "first": {
+     "type": "string",
+     "description": "First name",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.update"
+      ]
+     }
+    },
+    "last": {
+     "type": "string",
+     "description": "Last name",
+     "annotations": {
+      "required": [
+       "walletobjects.boardingpassobject.insert",
+       "walletobjects.boardingpassobject.update"
+      ]
+     }
+    },
+    "middle": {
+     "type": "string",
+     "description": "Middle name"
+    },
+    "prefix": {
+     "type": "string",
+     "description": "Prefix, e.g. Mr"
+    },
+    "suffix": {
+     "type": "string",
+     "description": "Suffix, e.g. Jr"
+    }
+   }
+  },
+  "RenderSpec": {
+   "id": "RenderSpec",
+   "type": "object",
+   "properties": {
+    "templateFamily": {
+     "type": "string",
+     "description": "The template family used to render the Wallet Object. Valid values are:  \n- 1.loyaltyCard1_expanded \n- 1.loyaltyCard1_list \n- 1.loyaltyCard2_expanded \n- 1.loyaltyCard2_list \n- 1.offer1_expanded \n- 1.offer1_list"
+    },
+    "viewName": {
+     "type": "string",
+     "description": "The view name (either g_list or g_expanded). This determines the template family to use to display a Wallet Object. For example, g_expanded would map to a template_family name with the word \"expanded\" in it (such as 1.loyaltyCard1_expanded), while g_list would map to a template_family name with the word \"list\" in it (such as 1.loyaltyCard1_list)."
+    }
+   }
+  },
+  "TextModuleData": {
+   "id": "TextModuleData",
+   "type": "object",
+   "properties": {
+    "body": {
+     "type": "string",
+     "description": "The body of the Text Module."
+    },
+    "header": {
+     "type": "string",
+     "description": "The header of the Text Module."
+    }
+   }
+  },
+  "TimeInterval": {
+   "id": "TimeInterval",
+   "type": "object",
+   "properties": {
+    "end": {
+     "$ref": "DateTime",
+     "description": "End time of the interval."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#timeInterval\".",
+     "default": "walletobjects#timeInterval"
+    },
+    "start": {
+     "$ref": "DateTime",
+     "description": "Start time of the interval."
+    }
+   }
+  },
+  "TypedValue": {
+   "id": "TypedValue",
+   "type": "object",
+   "properties": {
+    "bool": {
+     "type": "boolean",
+     "description": "The bool value."
+    },
+    "double": {
+     "type": "number",
+     "description": "The double value.",
+     "format": "double"
+    },
+    "image": {
+     "$ref": "Image",
+     "description": "The image value."
+    },
+    "int": {
+     "type": "integer",
+     "description": "The int value.",
+     "format": "int32"
+    },
+    "kind": {
+     "type": "string",
+     "description": "The kind, fixed to \"walletobjects#typedValue\".",
+     "default": "walletobjects#typedValue"
+    },
+    "list": {
+     "type": "array",
+     "description": "The list of typed values.",
+     "items": {
+      "$ref": "TypedValue"
+     }
+    },
+    "string": {
+     "type": "string",
+     "description": "The string value."
+    },
+    "uri": {
+     "$ref": "Uri",
+     "description": "The uri value."
+    }
+   },
+   "additionalProperties": {
+    "$ref": "TypedValue"
+   }
+  },
+  "Uri": {
+   "id": "Uri",
+   "type": "object",
+   "properties": {
+    "description": {
+     "type": "string",
+     "description": "The URI's title appearing in the Google Wallet app as text. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.\n\nNote that in some contexts this text is not used, such as when description is part of an image."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#uri\".",
+     "default": "walletobjects#uri"
+    },
+    "uri": {
+     "type": "string",
+     "description": "A destination for a web page or image."
+    }
+   }
+  },
+  "WalletObjectMessage": {
+   "id": "WalletObjectMessage",
+   "type": "object",
+   "properties": {
+    "actionUri": {
+     "$ref": "Uri",
+     "description": "The URI to which users are directed when they click on the message."
+    },
+    "body": {
+     "type": "string",
+     "description": "The message body. The maximum length is 200 characters for an expanded template with no image or 150 characters if you specify an image. Refer to the Using Templates section for more details."
+    },
+    "displayInterval": {
+     "$ref": "TimeInterval",
+     "description": "The period of time that the message will be displayed to users. You can define both a startTime and endTime for each message. A message is displayed immediately after a Wallet Object is inserted unless a startTime is set. The message will appear in a list of messages indefinitely if endTime is not provided."
+    },
+    "header": {
+     "type": "string",
+     "description": "The message header. The maximum length is 35 characters for an expanded template with no image or 25 characters if you specify an image. Refer to the Using Templates section section for more information."
+    },
+    "image": {
+     "$ref": "Image",
+     "description": "The image to display with the message."
+    },
+    "kind": {
+     "type": "string",
+     "description": "Identifies what kind of resource this is. Value: the fixed string \"walletobjects#walletObjectMessage\".",
+     "default": "walletobjects#walletObjectMessage"
+    }
+   }
+  }
+ },
+ "resources": {
+  "boardingpassclass": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.boardingpassclass.addmessage",
+     "path": "boardingPassClass/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the boarding pass class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassClassAddMessageRequest"
+     },
+     "response": {
+      "$ref": "BoardingPassClassAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.boardingpassclass.get",
+     "path": "boardingPassClass/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the boarding pass class with the given class ID.",
+     "parameters": {
+      "approvedOnly": {
+       "type": "boolean",
+       "description": "Specifies latest class version with a reviewStatus of approved be returned. The approved_only and version parameters cannot both be set.",
+       "default": "false",
+       "location": "query"
+      },
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      },
+      "version": {
+       "type": "string",
+       "description": "Identifies the version of the class to retrieve. The latest version of the class is returned if this value is not specified.",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassClassGetRequest"
+     },
+     "response": {
+      "$ref": "BoardingPassClass"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.boardingpassclass.insert",
+     "path": "boardingPassClass",
+     "httpMethod": "POST",
+     "description": "Inserts a boarding pass class with the given ID and properties.",
+     "request": {
+      "$ref": "BoardingPassClass"
+     },
+     "response": {
+      "$ref": "BoardingPassClass"
+     }
+    },
+    "list": {
+     "id": "walletobjects.boardingpassclass.list",
+     "path": "boardingPassClass",
+     "httpMethod": "GET",
+     "description": "Returns a list of all boarding pass classes for a given issuer ID.",
+     "parameters": {
+      "issuerId": {
+       "type": "string",
+       "description": "The ID of the issuer authorized to list classes. No type field, as that is implicate in the type part of the Uri.",
+       "required": true,
+       "format": "int64",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults classes are available in a list. For example, if you have a list of 200 classes and you call list with maxResults set to 20, list will return the first 20 classes and a token. Call list again with maxResults set to 20 and the token to get the next 20 classes.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "issuerId"
+     ],
+     "request": {
+      "$ref": "BoardingPassClassListRequest"
+     },
+     "response": {
+      "$ref": "BoardingPassClassListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.boardingpassclass.patch",
+     "path": "boardingPassClass/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the boarding pass class referenced by the given class ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassClass"
+     },
+     "response": {
+      "$ref": "BoardingPassClass"
+     }
+    },
+    "update": {
+     "id": "walletobjects.boardingpassclass.update",
+     "path": "boardingPassClass/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the boarding pass class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassClass"
+     },
+     "response": {
+      "$ref": "BoardingPassClass"
+     }
+    }
+   }
+  },
+  "boardingpassobject": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.boardingpassobject.addmessage",
+     "path": "boardingPassObject/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the boarding pass object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassObjectAddMessageRequest"
+     },
+     "response": {
+      "$ref": "BoardingPassObjectAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.boardingpassobject.get",
+     "path": "boardingPassObject/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the boarding pass object with the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassObjectGetRequest"
+     },
+     "response": {
+      "$ref": "BoardingPassObject"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.boardingpassobject.insert",
+     "path": "boardingPassObject",
+     "httpMethod": "POST",
+     "description": "Inserts a boarding pass object with the given ID and properties.",
+     "request": {
+      "$ref": "BoardingPassObject"
+     },
+     "response": {
+      "$ref": "BoardingPassObject"
+     }
+    },
+    "list": {
+     "id": "walletobjects.boardingpassobject.list",
+     "path": "boardingPassObject",
+     "httpMethod": "GET",
+     "description": "Returns a list of all boarding pass objects for a given class ID.",
+     "parameters": {
+      "classId": {
+       "type": "string",
+       "description": "The ID of the class whose objects will be listed.",
+       "required": true,
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults objects are available in a list. For example, if you have a list of 200 objects and you call list with maxResults set to 20, list will return the first 20 objects and a token. Call list again with maxResults set to 20 and the token to get the next 20 objects.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "classId"
+     ],
+     "request": {
+      "$ref": "BoardingPassObjectListRequest"
+     },
+     "response": {
+      "$ref": "BoardingPassObjectListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.boardingpassobject.patch",
+     "path": "boardingPassObject/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the boarding pass object referenced by the given object ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassObject"
+     },
+     "response": {
+      "$ref": "BoardingPassObject"
+     }
+    },
+    "update": {
+     "id": "walletobjects.boardingpassobject.update",
+     "path": "boardingPassObject/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the boarding pass object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "BoardingPassObject"
+     },
+     "response": {
+      "$ref": "BoardingPassObject"
+     }
+    }
+   }
+  },
+  "genericclass": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.genericclass.addmessage",
+     "path": "genericClass/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the generic class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericClassAddMessageRequest"
+     },
+     "response": {
+      "$ref": "GenericClassAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.genericclass.get",
+     "path": "genericClass/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the generic class with the given class ID.",
+     "parameters": {
+      "approvedOnly": {
+       "type": "boolean",
+       "description": "Specifies latest class version with a reviewStatus of approved be returned. The approved_only and version parameters cannot both be set.",
+       "default": "false",
+       "location": "query"
+      },
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      },
+      "version": {
+       "type": "string",
+       "description": "Identifies the version of the class to retrieve. The latest version of the class is returned if this value is not specified.",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericClassGetRequest"
+     },
+     "response": {
+      "$ref": "GenericClass"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.genericclass.insert",
+     "path": "genericClass",
+     "httpMethod": "POST",
+     "description": "Inserts a generic class with the given ID and properties.",
+     "request": {
+      "$ref": "GenericClass"
+     },
+     "response": {
+      "$ref": "GenericClass"
+     }
+    },
+    "list": {
+     "id": "walletobjects.genericclass.list",
+     "path": "genericClass",
+     "httpMethod": "GET",
+     "description": "Returns a list of all generic classes for a given issuer ID.",
+     "parameters": {
+      "issuerId": {
+       "type": "string",
+       "description": "The ID of the issuer authorized to list classes. No type field, as that is implicate in the type part of the Uri.",
+       "required": true,
+       "format": "int64",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults classes are available in a list. For example, if you have a list of 200 classes and you call list with maxResults set to 20, list will return the first 20 classes and a token. Call list again with maxResults set to 20 and the token to get the next 20 classes.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "issuerId"
+     ],
+     "request": {
+      "$ref": "GenericClassListRequest"
+     },
+     "response": {
+      "$ref": "GenericClassListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.genericclass.patch",
+     "path": "genericClass/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the generic class referenced by the given class ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericClass"
+     },
+     "response": {
+      "$ref": "GenericClass"
+     }
+    },
+    "update": {
+     "id": "walletobjects.genericclass.update",
+     "path": "genericClass/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the generic class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericClass"
+     },
+     "response": {
+      "$ref": "GenericClass"
+     }
+    }
+   }
+  },
+  "genericobject": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.genericobject.addmessage",
+     "path": "genericObject/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the generic object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericObjectAddMessageRequest"
+     },
+     "response": {
+      "$ref": "GenericObjectAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.genericobject.get",
+     "path": "genericObject/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the generic object with the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericObjectGetRequest"
+     },
+     "response": {
+      "$ref": "GenericObject"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.genericobject.insert",
+     "path": "genericObject",
+     "httpMethod": "POST",
+     "description": "Inserts a generic object with the given ID and properties.",
+     "request": {
+      "$ref": "GenericObject"
+     },
+     "response": {
+      "$ref": "GenericObject"
+     }
+    },
+    "list": {
+     "id": "walletobjects.genericobject.list",
+     "path": "genericObject",
+     "httpMethod": "GET",
+     "description": "Returns a list of all generic objects for a given class ID.",
+     "parameters": {
+      "classId": {
+       "type": "string",
+       "description": "The ID of the class whose objects will be listed.",
+       "required": true,
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults objects are available in a list. For example, if you have a list of 200 objects and you call list with maxResults set to 20, list will return the first 20 objects and a token. Call list again with maxResults set to 20 and the token to get the next 20 objects.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "classId"
+     ],
+     "request": {
+      "$ref": "GenericObjectListRequest"
+     },
+     "response": {
+      "$ref": "GenericObjectListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.genericobject.patch",
+     "path": "genericObject/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the generic object referenced by the given object ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericObject"
+     },
+     "response": {
+      "$ref": "GenericObject"
+     }
+    },
+    "update": {
+     "id": "walletobjects.genericobject.update",
+     "path": "genericObject/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the generic object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GenericObject"
+     },
+     "response": {
+      "$ref": "GenericObject"
+     }
+    }
+   }
+  },
+  "giftcardclass": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.giftcardclass.addmessage",
+     "path": "giftCardClass/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the gift card class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardClassAddMessageRequest"
+     },
+     "response": {
+      "$ref": "GiftCardClassAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.giftcardclass.get",
+     "path": "giftCardClass/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the gift card class with the given class ID.",
+     "parameters": {
+      "approvedOnly": {
+       "type": "boolean",
+       "default": "false",
+       "location": "query"
+      },
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      },
+      "version": {
+       "type": "string",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardClassGetRequest"
+     },
+     "response": {
+      "$ref": "GiftCardClass"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.giftcardclass.insert",
+     "path": "giftCardClass",
+     "httpMethod": "POST",
+     "description": "Inserts a gift card class with the given ID and properties.",
+     "request": {
+      "$ref": "GiftCardClass"
+     },
+     "response": {
+      "$ref": "GiftCardClass"
+     }
+    },
+    "list": {
+     "id": "walletobjects.giftcardclass.list",
+     "path": "giftCardClass",
+     "httpMethod": "GET",
+     "description": "Returns a list of all gift card classes for a given issuer ID.",
+     "parameters": {
+      "issuerId": {
+       "type": "string",
+       "required": true,
+       "format": "int64",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "issuerId"
+     ],
+     "request": {
+      "$ref": "GiftCardClassListRequest"
+     },
+     "response": {
+      "$ref": "GiftCardClassListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.giftcardclass.patch",
+     "path": "giftCardClass/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the gift card class referenced by the given class ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardClass"
+     },
+     "response": {
+      "$ref": "GiftCardClass"
+     }
+    },
+    "update": {
+     "id": "walletobjects.giftcardclass.update",
+     "path": "giftCardClass/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the gift card class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardClass"
+     },
+     "response": {
+      "$ref": "GiftCardClass"
+     }
+    }
+   }
+  },
+  "giftcardobject": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.giftcardobject.addmessage",
+     "path": "giftCardObject/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the gift card object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardObjectAddMessageRequest"
+     },
+     "response": {
+      "$ref": "GiftCardObjectAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.giftcardobject.get",
+     "path": "giftCardObject/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the gift card object with the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardObjectGetRequest"
+     },
+     "response": {
+      "$ref": "GiftCardObject"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.giftcardobject.insert",
+     "path": "giftCardObject",
+     "httpMethod": "POST",
+     "description": "Inserts a gift card object with the given ID and properties.",
+     "request": {
+      "$ref": "GiftCardObject"
+     },
+     "response": {
+      "$ref": "GiftCardObject"
+     }
+    },
+    "list": {
+     "id": "walletobjects.giftcardobject.list",
+     "path": "giftCardObject",
+     "httpMethod": "GET",
+     "description": "Returns a list of all gift card objects for a given class ID.",
+     "parameters": {
+      "classId": {
+       "type": "string",
+       "required": true,
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "classId"
+     ],
+     "request": {
+      "$ref": "GiftCardObjectListRequest"
+     },
+     "response": {
+      "$ref": "GiftCardObjectListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.giftcardobject.patch",
+     "path": "giftCardObject/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the gift card object referenced by the given object ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardObject"
+     },
+     "response": {
+      "$ref": "GiftCardObject"
+     }
+    },
+    "update": {
+     "id": "walletobjects.giftcardobject.update",
+     "path": "giftCardObject/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the gift card object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "GiftCardObject"
+     },
+     "response": {
+      "$ref": "GiftCardObject"
+     }
+    }
+   }
+  },
+  "loyaltyclass": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.loyaltyclass.addmessage",
+     "path": "loyaltyClass/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the loyalty class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyClassAddMessageRequest"
+     },
+     "response": {
+      "$ref": "LoyaltyClassAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.loyaltyclass.get",
+     "path": "loyaltyClass/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the loyalty class with the given class ID.",
+     "parameters": {
+      "approvedOnly": {
+       "type": "boolean",
+       "description": "Returns the latest class version with a reviewStatus of approved. The approved_only and version parameters cannot both be set.",
+       "default": "false",
+       "location": "query"
+      },
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      },
+      "version": {
+       "type": "string",
+       "description": "Identifies the version of the class to return. The latest version of the class is returned if this value is not specified.",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyClassGetRequest"
+     },
+     "response": {
+      "$ref": "LoyaltyClass"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.loyaltyclass.insert",
+     "path": "loyaltyClass",
+     "httpMethod": "POST",
+     "description": "Inserts a loyalty class with the given ID and properties.",
+     "request": {
+      "$ref": "LoyaltyClass"
+     },
+     "response": {
+      "$ref": "LoyaltyClass"
+     }
+    },
+    "list": {
+     "id": "walletobjects.loyaltyclass.list",
+     "path": "loyaltyClass",
+     "httpMethod": "GET",
+     "description": "Returns a list of all loyalty classes for a given issuer ID.",
+     "parameters": {
+      "issuerId": {
+       "type": "string",
+       "description": "The ID of the issuer authorized to list classes.",
+       "required": true,
+       "format": "int64",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults classes are available in a list. For example, if you have a list of 200 classes and you call list with maxResults set to 20, list will return the first 20 classes and a token. Call list again with maxResults set to 20 and the token to get the next 20 classes.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "issuerId"
+     ],
+     "request": {
+      "$ref": "LoyaltyClassListRequest"
+     },
+     "response": {
+      "$ref": "LoyaltyClassListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.loyaltyclass.patch",
+     "path": "loyaltyClass/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the loyalty class referenced by the given class ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyClass"
+     },
+     "response": {
+      "$ref": "LoyaltyClass"
+     }
+    },
+    "update": {
+     "id": "walletobjects.loyaltyclass.update",
+     "path": "loyaltyClass/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the loyalty class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyClass"
+     },
+     "response": {
+      "$ref": "LoyaltyClass"
+     }
+    }
+   }
+  },
+  "loyaltyobject": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.loyaltyobject.addmessage",
+     "path": "loyaltyObject/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the loyalty object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "description": "Unique identifier for an object. Must be unique across all objects from an issuer. Should follow the format \u003cissuer ID (specified by Google)\u003e.\u003cidentifier(chosen by you)\u003e. Your unique identifier should only include alphanumeric characters, '_' or '-'.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyObjectAddMessageRequest"
+     },
+     "response": {
+      "$ref": "LoyaltyObjectAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.loyaltyobject.get",
+     "path": "loyaltyObject/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the loyalty object with the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyObjectGetRequest"
+     },
+     "response": {
+      "$ref": "LoyaltyObject"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.loyaltyobject.insert",
+     "path": "loyaltyObject",
+     "httpMethod": "POST",
+     "description": "Inserts a loyalty object with the given ID and properties.",
+     "request": {
+      "$ref": "LoyaltyObject"
+     },
+     "response": {
+      "$ref": "LoyaltyObject"
+     }
+    },
+    "list": {
+     "id": "walletobjects.loyaltyobject.list",
+     "path": "loyaltyObject",
+     "httpMethod": "GET",
+     "description": "Returns a list of all loyalty objects for a given class ID.",
+     "parameters": {
+      "classId": {
+       "type": "string",
+       "description": "The ID of the class whose objects will be listed.",
+       "required": true,
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults objects are available in a list. For example, if you have a list of 200 objects and you call list with maxResults set to 20, list will return the first 20 objects and a token. Call list again with maxResults set to 20 and the token to get the next 20 objects.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "classId"
+     ],
+     "request": {
+      "$ref": "LoyaltyObjectListRequest"
+     },
+     "response": {
+      "$ref": "LoyaltyObjectListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.loyaltyobject.patch",
+     "path": "loyaltyObject/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the loyalty object referenced by the given object ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyObject"
+     },
+     "response": {
+      "$ref": "LoyaltyObject"
+     }
+    },
+    "update": {
+     "id": "walletobjects.loyaltyobject.update",
+     "path": "loyaltyObject/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the loyalty object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "LoyaltyObject"
+     },
+     "response": {
+      "$ref": "LoyaltyObject"
+     }
+    }
+   }
+  },
+  "offerclass": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.offerclass.addmessage",
+     "path": "offerClass/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the offer class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferClassAddMessageRequest"
+     },
+     "response": {
+      "$ref": "OfferClassAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.offerclass.get",
+     "path": "offerClass/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the offer class with the given class ID.",
+     "parameters": {
+      "approvedOnly": {
+       "type": "boolean",
+       "description": "Specifies latest class version with a reviewStatus of approved be returned. The approved_only and version parameters cannot both be set.",
+       "default": "false",
+       "location": "query"
+      },
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      },
+      "version": {
+       "type": "string",
+       "description": "Identifies the version of the class to retrieve. The latest version of the class is returned if this value is not specified.",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferClassGetRequest"
+     },
+     "response": {
+      "$ref": "OfferClass"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.offerclass.insert",
+     "path": "offerClass",
+     "httpMethod": "POST",
+     "description": "Inserts an offer class with the given ID and properties.",
+     "request": {
+      "$ref": "OfferClass"
+     },
+     "response": {
+      "$ref": "OfferClass"
+     }
+    },
+    "list": {
+     "id": "walletobjects.offerclass.list",
+     "path": "offerClass",
+     "httpMethod": "GET",
+     "description": "Returns a list of all offer classes for a given issuer ID.",
+     "parameters": {
+      "issuerId": {
+       "type": "string",
+       "description": "The ID of the issuer authorized to list classes. No type field, as that is implicate in the type part of the Uri.",
+       "required": true,
+       "format": "int64",
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults classes are available in a list. For example, if you have a list of 200 classes and you call list with maxResults set to 20, list will return the first 20 classes and a token. Call list again with maxResults set to 20 and the token to get the next 20 classes.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "issuerId"
+     ],
+     "request": {
+      "$ref": "OfferClassListRequest"
+     },
+     "response": {
+      "$ref": "OfferClassListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.offerclass.patch",
+     "path": "offerClass/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the offer class referenced by the given class ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferClass"
+     },
+     "response": {
+      "$ref": "OfferClass"
+     }
+    },
+    "update": {
+     "id": "walletobjects.offerclass.update",
+     "path": "offerClass/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the offer class referenced by the given class ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferClass"
+     },
+     "response": {
+      "$ref": "OfferClass"
+     }
+    }
+   }
+  },
+  "offerobject": {
+   "methods": {
+    "addmessage": {
+     "id": "walletobjects.offerobject.addmessage",
+     "path": "offerObject/{resourceId}/addMessage",
+     "httpMethod": "POST",
+     "description": "Adds a message to the offer object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferObjectAddMessageRequest"
+     },
+     "response": {
+      "$ref": "OfferObjectAddMessageResponse"
+     }
+    },
+    "get": {
+     "id": "walletobjects.offerobject.get",
+     "path": "offerObject/{resourceId}",
+     "httpMethod": "GET",
+     "description": "Returns the offer object with the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferObjectGetRequest"
+     },
+     "response": {
+      "$ref": "OfferObject"
+     }
+    },
+    "insert": {
+     "id": "walletobjects.offerobject.insert",
+     "path": "offerObject",
+     "httpMethod": "POST",
+     "description": "Inserts an offer object with the given ID and properties.",
+     "request": {
+      "$ref": "OfferObject"
+     },
+     "response": {
+      "$ref": "OfferObject"
+     }
+    },
+    "list": {
+     "id": "walletobjects.offerobject.list",
+     "path": "offerObject",
+     "httpMethod": "GET",
+     "description": "Returns a list of all offer objects for a given class ID.",
+     "parameters": {
+      "classId": {
+       "type": "string",
+       "description": "The ID of the class whose objects will be listed.",
+       "required": true,
+       "location": "query"
+      },
+      "maxResults": {
+       "type": "integer",
+       "description": "Identifies the max number of results returned by a list. All results are returned if maxResults isn't defined.",
+       "format": "int32",
+       "location": "query"
+      },
+      "token": {
+       "type": "string",
+       "description": "Used to get the next set of results if maxResults is specified, but more than maxResults objects are available in a list. For example, if you have a list of 200 objects and you call list with maxResults set to 20, list will return the first 20 objects and a token. Call list again with maxResults set to 20 and the token to get the next 20 objects.",
+       "location": "query"
+      }
+     },
+     "parameterOrder": [
+      "classId"
+     ],
+     "request": {
+      "$ref": "OfferObjectListRequest"
+     },
+     "response": {
+      "$ref": "OfferObjectListResponse"
+     }
+    },
+    "patch": {
+     "id": "walletobjects.offerobject.patch",
+     "path": "offerObject/{resourceId}",
+     "httpMethod": "PATCH",
+     "description": "Updates the offer object referenced by the given object ID. This method supports patch semantics.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferObject"
+     },
+     "response": {
+      "$ref": "OfferObject"
+     }
+    },
+    "update": {
+     "id": "walletobjects.offerobject.update",
+     "path": "offerObject/{resourceId}",
+     "httpMethod": "PUT",
+     "description": "Updates the offer object referenced by the given object ID.",
+     "parameters": {
+      "resourceId": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resourceId"
+     ],
+     "request": {
+      "$ref": "OfferObject"
+     },
+     "response": {
+      "$ref": "OfferObject"
+     }
+    }
+   }
+  }
+ }
+}
