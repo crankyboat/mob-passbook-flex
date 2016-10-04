@@ -139,6 +139,9 @@
             );
         }
     </script>
+
+    <script src="https://apis.google.com/js/plusone.js" type="text/javascript"></script>
+
     <script>
         var txt = '{{ qrcodeText|replace('\n','\\n')|replace('\'', '\\\'')|safe }}';
         $('#QRCode').qrcode({width: 192, height: 192, text: txt});
@@ -149,12 +152,16 @@
             $('#addToWallet').append(component);
         }
         else if (isAndroid()) {
-            var encodedQueryString = encodeURIComponent('serialNumber={{ serialNumber }}&hexSignature={{ hexSignature }}' + getQueryString());
-            var path = 'https://walletpass.io?u=' + 'https%3A%2F%2Fmobivitypassbook-staging.appspot.com%2Fpass%3F' + encodedQueryString;
-            var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet-android.png" alt="Add to Wallet"></a>';
+            var component = '<g:savetowallet jwt="{{ signed_jwt }}" height="standard"></g:savetowallet>';
             $('#addToWallet').append(component);
         }
     </script>
+        <!--else if (isAndroid()) {-->
+        <!--var encodedQueryString = encodeURIComponent('serialNumber={{ serialNumber }}&hexSignature={{ hexSignature }}' + getQueryString());-->
+        <!--var path = 'https://walletpass.io?u=' + 'https%3A%2F%2Fmobivitypassbook-staging.appspot.com%2Fpass%3F' + encodedQueryString;-->
+        <!--var component = '<a href="'+path+'" class="addToWalletButton"><img src="static/images/add-to-wallet-android.png" alt="Add to Wallet"></a>';-->
+        <!--$('#addToWallet').append(component);-->
+        <!--}-->
     </body>
 
 </html>

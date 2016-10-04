@@ -17,6 +17,9 @@ This file contains all of the configuration values for the application.
 Update this file with the values for your specific Google Cloud project.
 You can create and manage projects at https://console.developers.google.com
 """
+DEFAULT_AUTHTOKEN = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc'
+DEFAULT_SERIAL_SALT = '248f1704b8cc4232b4475143a8e98c32'
+DEFAULT_SIGNATURE_SALT = '08f92b7a-7b90-11e6-8b77-86f30ca893d3'
 
 # The secret key is used by Flask to encrypt session cookies.
 SECRET_KEY = 'secret'

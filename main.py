@@ -35,6 +35,10 @@ from passgen import PassGenerator
 # Apple Passkit Web Service
 from passkit import PasskitWebService
 
+# Android Save to Android Pay Api
+from android.s2ap import SaveToAndroidApiHandler
+from android.models import ObjectState
+
 # Basic Auth
 from functools import wraps
 
@@ -46,13 +50,7 @@ gds = datastore.Client(project=app.config['PROJECT_ID'])
 passkit = PasskitWebService(datastoreClient=gds,
                             storageClient=gstorage)
 passgen = PassGenerator()
-
-
-# [START DEFAULT TOKENS
-DEFAULT_AUTHTOKEN = 'vxwxd7J8AlNNFPS8k0a0FfUFtq0ewzFdc'
-DEFAULT_SERIAL_SALT = '248f1704b8cc4232b4475143a8e98c32'
-DEFAULT_SIGNATURE_SALT = '08f92b7a-7b90-11e6-8b77-86f30ca893d3'
-# [END DEFAULT TOKENS]
+s2ap = SaveToAndroidApiHandler()
 
 
 with app.app_context():
@@ -133,7 +131,7 @@ def hello():
         request.args.get('offerImage'), request.args.get('offerImageHighRes'),
         request.args.get('zipcode')
     ]
-    serialSalt = DEFAULT_SERIAL_SALT
+    serialSalt = app.config['DEFAULT_SERIAL_SALT']
     serialMessage = '{}{}'.format(''.join(serialList), serialSalt)
     signedSerialMessage = hashlib.md5()
     signedSerialMessage.update(serialMessage.encode())
@@ -144,7 +142,7 @@ def hello():
     originalMessage = '{}\n'.format('\n'.join(originalList))
 
     # Sign message
-    salt = DEFAULT_SIGNATURE_SALT
+    salt = app.config['DEFAULT_SIGNATURE_SALT']
     message = '{}{}'.format(originalMessage, salt)
     signedMessage = hashlib.md5()
     signedMessage.update(message.encode())
@@ -152,19 +150,64 @@ def hello():
     qrcodeText = '{}{}'.format(originalMessage, signedMessageHex)
     logging.error('QRCODE TEXT: {}'.format(qrcodeText.replace('\n', '\\n')))
 
-    # Queue load image task
-    offerimg = request.args.get('offerImage')
-    offerimgHR = request.args.get('offerImageHighRes')
-    q = imgload.get_imgload_queue()
-    q.enqueue(imgload.load_img, offerimg, serialNumber, 'strip')
-    q.enqueue(imgload.load_img, offerimgHR, serialNumber, 'strip@2x')
+
+    # Check platform
+    # logging.error('String: {}'.format(request.user_agent.string))
+    logging.error('Platform: {}'.format(request.user_agent.platform))
+    logging.error('Browser: {}'.format(request.user_agent.browser))
+    platform = request.user_agent.platform.lower()
+
+    if platform=='android':
+
+        # Assume offer class has been created
+        # offer_class = s2ap.insert_offer_class()
+
+        # TODO Get previous version number
+
+        # Create and sign offer object
+        offer_object = s2ap.create_offer_object(
+            offer_object_id=serialNumber,
+            offer_text=request.args.get('offerText'),
+            offer_expiration=request.args.get('offerExpiration'),
+            offer_barcode_message=qrcodeText,
+            offer_image_url=request.args.get('offerImageHighRes'),
+            version='2' #HACK
+        )
+
+        # TODO Update object on google's side IF EXISTS!
+        # s2ap.updateOfferObject(offer_object_id=serialNumber,
+        #                        offer_object_dict=offer_object.json_dict())
+
+        signed_jwt = s2ap.createSignedJwt(offer_object)
+
+        # TODO Adding offer information to datastore
+        # Should NOT be in the passkit tables
+        # Um but these info are probably in google merchant center?
+        # If so then do not need to maintain, simply query
+
+    elif platform=='ios':
+
+        # Queue load image task
+        offerimg = request.args.get('offerImage')
+        offerimgHR = request.args.get('offerImageHighRes')
+        q = imgload.get_imgload_queue()
+        q.enqueue(imgload.load_img, offerimg, serialNumber, 'strip')
+        q.enqueue(imgload.load_img, offerimgHR, serialNumber, 'strip@2x')
+
+        signed_jwt = ''
+
+    else: #browser
+
+        # Do nothing
+        signed_jwt = ''
 
     return build_response(
         render_template(
             'index.html',
             qrcodeText=qrcodeText,
             serialNumber=serialNumber,
-            hexSignature=signedMessageHex
+            hexSignature=signedMessageHex,
+            signed_jwt=signed_jwt
         ),
         status=200,
         contenttype='html'
@@ -175,7 +218,7 @@ def hello():
 def send_pass():
 
     # Save authtoken to datastore
-    pass_auth = DEFAULT_AUTHTOKEN
+    pass_auth = app.config['DEFAULT_AUTHTOKEN']
     passkit.add_pass_authtoken(pass_auth)
 
     # Add pass to datastore
@@ -220,7 +263,7 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
 
     # Register
     if request.method == 'POST':
-        pushToken = request.json['pushToken']
+        pushToken = request.jsonod['pushToken']
         status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken, authTitle)
 
         logging.error('/PASSKIT/REGIST PUSHTOKEN: {}'.format(pushToken))
@@ -396,7 +439,7 @@ def update_pass_expiration():
     )
 
 
-@app.route('/pass/redeem', methods=['POST'])
+@app.route('/pass/redeem', methods=['GET', 'POST'])
 @requires_auth
 def redeem_pass():
 
@@ -404,47 +447,42 @@ def redeem_pass():
     # Requires basic auth
     # Sends push notification to device
 
-    status = passkit.redeem_pass(request.args.get('serialNumber'))
-    deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
-    logging.error('REDEEM API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
+    if request.method == 'GET': #VERIFY
 
-    if status == 200 and deviceLibraryIdentifier:
-        push_notification(deviceLibraryIdentifier)
-        logging.error('REDEEM PUSHED.')
+        status = passkit.verify_pass(request.args.get('serialNumber'))
+        deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
+        logging.error('VERIFY API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
 
-    return build_response(
-        'Serial: {}\nRedeemed: {}'.format(
-            request.args.get('serialNumber'),
-            status == 200
-        ),
-        status=200
-    )
+        if status == 200 and deviceLibraryIdentifier:
+            logging.error('VERIFIED.')
+        else:
+            logging.error('VERIFICATION FAILED.')
 
+        return build_response(
+            'Serial: {}\nVerified: {}'.format(
+                request.args.get('serialNumber'),
+                status == 200 and deviceLibraryIdentifier
+            ),
+            status=status
+        )
 
-@app.route('/pass/verify', methods=['POST'])
-@requires_auth
-def verify_pass():
+    else:   # if request.method == 'POST'   #REDEEM
 
-    # EXPOSED TO HOOK SERVICE
-    # Requires basic auth
-    # Sends push notification to device
+        status = passkit.redeem_pass(request.args.get('serialNumber'))
+        deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
+        logging.error('REDEEM API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
 
-    status = passkit.verify_pass(request.args.get('serialNumber'))
-    deviceLibraryIdentifier = passkit.get_devicelibid_of_pass(request.args.get('serialNumber'))
-    logging.error('VERIFY API STATUS {}, DEVICE {}.'.format(status, deviceLibraryIdentifier))
+        if status == 200 and deviceLibraryIdentifier:
+            push_notification(deviceLibraryIdentifier)
+            logging.error('REDEEM PUSHED.')
 
-    if status == 200 and deviceLibraryIdentifier:
-        logging.error('VERIFIED.')
-    else:
-        logging.error('VERIFICATION FAILED.')
-
-    return build_response(
-        'Serial: {}\nVerified: {}'.format(
-            request.args.get('serialNumber'),
-            status == 200 and deviceLibraryIdentifier
-        ),
-        status=200
-    )
+        return build_response(
+            'Serial: {}\nRedeemed: {}'.format(
+                request.args.get('serialNumber'),
+                status == 200 and deviceLibraryIdentifier
+            ),
+            status=status
+        )
 
 
 @app.route('/pass/list', methods=['GET'])
@@ -459,6 +497,69 @@ def list_passes():
 
 
 # [END PUSH NOTIFICATION SUPPORT]
+
+
+@app.route('/android/redeem', methods=['GET', 'POST'])
+@requires_auth
+def redeem_android_offer():
+
+    if request.method == 'GET': #VERIFY
+
+        # GET Offer object
+        offer = s2ap.getOfferObject(request.args.get('serialNumber'))
+
+        if offer['state'] == ObjectState.ACTIVE: # and offerExpiration < now:
+            logging.error('ANDROID/VERIFY succeeded.')
+            status = 200
+        else:
+            logging.error('ANDROID/VERIFY failed.')
+            status = 400
+
+        return build_response(
+            json.dumps({'Success': status == 200}),
+            contenttype='json',
+            status=status
+        )
+
+
+    else: #request.method == 'POST: #REDEEM
+
+        # GET Offer object
+        offer = s2ap.getOfferObject(request.args.get('serialNumber'))
+
+        # TODO Better update logic
+        # Update offer object
+        if offer['state'] == ObjectState.ACTIVE: # and offerExpiration < now:
+
+            offer['version'] = str(int(offer['version']) + 1)
+            offer['state'] = ObjectState.COMPLETE
+            offer['barcode']['value'] = 'OFFER HAS BEEN REDEEMED'
+            offer['barcode']['alternateText'] = 'OFFER HAS BEEN REDEEMED'
+
+            # PUT Offer object
+            s2ap.updateOfferObject(offer_object_id=request.args.get('serialNumber'),
+                                   offer_object_dict=offer)
+            logging.error('ANDROID/REDEEM succeeded.')
+            status = 200
+        else:
+            logging.error('ANDROID/REDEEM failed.')
+            status = 400
+
+        return build_response(
+            json.dumps(offer),
+            contenttype='json',
+            status=status
+        )
+
+
+@app.route('/android/list', methods=['GET'])
+@requires_auth
+def list_android_offers():
+
+    return build_response(
+        s2ap.listOfferObjects(),
+        status=200
+    )
 
 
 @app.route('/cleanup/storage')

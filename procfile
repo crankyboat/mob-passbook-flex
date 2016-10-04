@@ -1,3 +1,4 @@
 app: gunicorn -b :$PORT main:app
+# passkit: gunicorn -b :4502 passkit:app
 worker: psqworker --pid /tmp/psq.pid main.imgload_queue
 monitor: python monitor.py /tmp/psq.pid

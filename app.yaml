@@ -17,5 +17,6 @@ handlers:
   script: IGNORED
   secure: always
 - url: /cleanup/storage
+  script: main.app
   login: admin
 
