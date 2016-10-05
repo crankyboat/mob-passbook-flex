@@ -2,8 +2,7 @@ import logging
 import itertools
 import datetime, time
 from pytz import timezone
-
-DEFAULT_TIMEZONE = 'US/Pacific'
+import config
 
 
 class ClassRedemptionChannel:
@@ -464,7 +463,7 @@ class OfferObject(OfferTemplate):
                 odate = datetime.datetime.strptime(value, '%m/%d/%Y')
                 otime = datetime.time(23, 59, 59, 0)
                 odatetime = datetime.datetime.combine(odate, otime)
-                odatetime = timezone(DEFAULT_TIMEZONE).localize(odatetime)
+                odatetime = timezone(config.DEFAULT_TIMEZONE).localize(odatetime)
                 odatetime = odatetime.astimezone(timezone('UTC'))
                 setattr(self, attr + 'Datetime', odatetime)
                 setattr(self, attr, odatetime.strftime('%Y-%m-%dT%H:%M:%S.00Z'))

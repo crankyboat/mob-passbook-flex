@@ -8,3 +8,5 @@ ISSUER_NAME = 'SUBWAY'
 PROVIDER = 'Mobivity'
 
 OFFER_CLASS_ID = 'weeklyoffer'
+
+DEFAULT_TIMEZONE = 'US/Pacific'

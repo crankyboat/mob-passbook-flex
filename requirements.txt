@@ -11,9 +11,4 @@ urllib3>=1.15
 -e git+https://github.com/crankyboat/apns3-pull.git@develop#egg=apns3[pyopenssl]
 # -e ./apns3[pyopenssl]
 # -e ./passbook/
-
-# QRCODE SUPPORT
-# Pillow
-# git+https://github.com/lincolnloop/python-qrcode.git#egg=qrcode
-# git+https://github.com/ojii/pymaging.git#egg=pymaging
-# git+https://github.com/ojii/pymaging-png.git#egg=pymaging-png
+google-api-python-client

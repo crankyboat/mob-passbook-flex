@@ -3,7 +3,9 @@
 
 import logging
 import config
-from models import OfferClass, OfferObject, RequestJwt
+from models import OfferClass, OfferObject, ObjectState, RequestJwt
+import datetime
+from pytz import timezone
 try:
     import simplejson as json
 except ImportError:
@@ -76,7 +78,6 @@ class SaveToAndroidApiHandler(object):
     def create_offer_object(self, offer_object_id, offer_text, offer_expiration,
                             offer_barcode_message, offer_image_url, version='1'):
 
-
         offer_object = OfferObject(
             config.ISSUER_ID,
             config.OFFER_CLASS_ID,
@@ -89,7 +90,7 @@ class SaveToAndroidApiHandler(object):
 
         return offer_object
 
-    def createSignedJwt(self, offer_object):
+    def create_signed_jwt(self, offer_object):
 
         requestDomains = ['https://mobivitypassbook-staging.appspot.com', 'https://mobpass.localtunnel.me',
                           'http://mobivitypassbook-staging.appspot.com', 'http://mobpass.localtunnel.me']
@@ -103,14 +104,19 @@ class SaveToAndroidApiHandler(object):
         # logging.error('Signed JWT: {}'.format(signed_jwt))
         return signed_jwt
 
-    def getOfferObject(self, offer_object_id):
+    def get_offer_object(self, offer_object_id):
 
         api_target = self.service.offerobject()
         api_request = api_target.get(resourceId='{}.{}'.format(config.ISSUER_ID, offer_object_id))
-        api_response = api_request.execute() #returns a dictionary
-        return api_response
 
-    def updateOfferObject(self, offer_object_id, offer_object_dict):
+        try:
+            api_response = api_request.execute() #returns a dictionary
+            return api_response
+        except: # urllib2.HttpError
+            return None
+
+    def update_offer_object(self, offer_object_id, offer_object_dict):
+
         api_target = self.service.offerobject()
         api_request = api_target.update(
             resourceId='{}.{}'.format(config.ISSUER_ID, offer_object_id),
@@ -119,12 +125,13 @@ class SaveToAndroidApiHandler(object):
         api_response = api_request.execute()
         # logging.error('UPDATE OFFER API RESPONSE: {}'.format(api_response))
 
-        logging.error('Succesfully updated object.')
         if 'error' in api_response.keys():
             logging.error('Error updating object {}.{}'.format(config.ISSUER_ID, offer_object_id))
+        else:
+            logging.error('Succesfully updated object.')
         return
 
-    def listOfferObjects(self):
+    def list_offer_objects(self):
 
         api_target = self.service.offerobject()
         api_request = api_target.list(classId='{}.{}'.format(config.ISSUER_ID, config.OFFER_CLASS_ID), maxResults='25')
@@ -142,7 +149,74 @@ class SaveToAndroidApiHandler(object):
         ]
         return '\n'.join(offer_list)
 
+    def verify_offer_object(self, offer_object_id):
+
+        # GET Offer object
+        offer = self.get_offer_object(offer_object_id)
+
+        # Convert offerExpiration and now to datetime objects
+        offer_utc = self._rfc3339_to_datetime(offer['validTimeInterval']['end']['date'])
+        now_utc = datetime.datetime.now(timezone('UTC'))
+
+        if offer['state'] == ObjectState.ACTIVE and offer_utc > now_utc:
+            return 200
+        else:
+            return 400
+
+    def redeem_offer_object(self, offer_object_id):
+
+        # GET Offer object
+        offer = self.get_offer_object(offer_object_id)
+
+        # Convert offerExpiration and now to datetime objects
+        offer_utc = self._rfc3339_to_datetime(offer['validTimeInterval']['end']['date'])
+        now_utc = datetime.datetime.now(timezone('UTC'))
+
+        # TODO Better update logic
+        # Update offer object
+        if offer['state'] == ObjectState.ACTIVE and offer_utc > now_utc:
+
+            offer['version'] = str(int(offer['version']) + 1)
+            offer['state'] = ObjectState.COMPLETE
+            offer['barcode']['alternateText'] = 'OFFER HAS BEEN REDEEMED'
+            # offer['barcode']['value'] = 'OFFER HAS BEEN REDEEMED'
+
+            # PUT Offer object
+            self.update_offer_object(offer_object_id=offer_object_id,
+                                     offer_object_dict=offer)
+            status = 200
+        else:
+            status = 400
+
+        return status
+
+    def _reactivate_offer_object(self, offer_object_id):
+
+        # HUGE DEBUG HACK
+        offer = self.get_offer_object(offer_object_id)
+        if offer:
+            offer['version'] = str(int(offer['version']) + 1)
+            offer['state'] = ObjectState.ACTIVE
+            offer['barcode']['alternateText'] = '{}'.format(offer['id'].split('.')[1])
+            self.update_offer_object(offer_object_id=offer_object_id,
+                                     offer_object_dict=offer)
+
+    @staticmethod
+    def _rfc3339_to_datetime(datestring):
+        odate = datetime.datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S.%fZ')
+        otime = datetime.time(23, 59, 59, 0)
+        odatetime = datetime.datetime.combine(odate, otime)
+        odatetime = timezone(config.DEFAULT_TIMEZONE).localize(odatetime)
+        odatetime = odatetime.astimezone(timezone('UTC'))
+        return odatetime
+
 
 if __name__ == '__main__':
     s2ap = SaveToAndroidApiHandler()
+    s2ap._reactivate_offer_object('db4a2d83bd1fcc8efd59c416df0dca09')
+    s2ap._reactivate_offer_object('6998f01b9087a0ba438849b8e811e6ab')
+    s2ap._reactivate_offer_object('30b2321fa2edeb4071a4ba35aeb5edc0')
+
+    # print s2ap.get_offer_object('123456')
+    # print s2ap.get_offer_object('thisisanoffer2')
     # offer_class = s2ap.insert_offer_class(new_offer_class=False)

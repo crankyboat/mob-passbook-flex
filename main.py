@@ -20,7 +20,7 @@ try:
 except ImportError:
     import json
 
-from flask import Flask, render_template, send_file, request, make_response
+from flask import Flask, render_template, send_file, request, make_response, redirect, url_for
 from gcloud import storage, datastore
 from uuid import uuid4
 import hashlib
@@ -37,7 +37,9 @@ from passkit import PasskitWebService
 
 # Android Save to Android Pay Api
 from android.s2ap import SaveToAndroidApiHandler
-from android.models import ObjectState
+
+# Platform check
+from platinfo import PlatformRecord
 
 # Basic Auth
 from functools import wraps
@@ -51,6 +53,7 @@ passkit = PasskitWebService(datastoreClient=gds,
                             storageClient=gstorage)
 passgen = PassGenerator()
 s2ap = SaveToAndroidApiHandler()
+platinfo = PlatformRecord(datastoreClient=gds)
 
 
 with app.app_context():
@@ -157,35 +160,39 @@ def hello():
     logging.error('Browser: {}'.format(request.user_agent.browser))
     platform = request.user_agent.platform.lower()
 
-    if platform=='android':
+    if platform == 'android':
+
+        # Record platform info
+        platinfo.record_platform(serialNumber, 'android')
 
         # Assume offer class has been created
         # offer_class = s2ap.insert_offer_class()
 
-        # TODO Get previous version number
+        offer_object = s2ap.get_offer_object(serialNumber)
 
-        # Create and sign offer object
-        offer_object = s2ap.create_offer_object(
-            offer_object_id=serialNumber,
-            offer_text=request.args.get('offerText'),
-            offer_expiration=request.args.get('offerExpiration'),
-            offer_barcode_message=qrcodeText,
-            offer_image_url=request.args.get('offerImageHighRes'),
-            version='2' #HACK
-        )
+        if not offer_object:
 
-        # TODO Update object on google's side IF EXISTS!
-        # s2ap.updateOfferObject(offer_object_id=serialNumber,
-        #                        offer_object_dict=offer_object.json_dict())
+            # Create and sign offer object
+            offer_object = s2ap.create_offer_object(
+                offer_object_id=serialNumber,
+                offer_text=request.args.get('offerText'),
+                offer_expiration=request.args.get('offerExpiration'),
+                offer_barcode_message=qrcodeText,
+                offer_image_url=request.args.get('offerImageHighRes'),
+                version='1'
+            )
 
-        signed_jwt = s2ap.createSignedJwt(offer_object)
+        signed_jwt = s2ap.create_signed_jwt(offer_object)
 
         # TODO Adding offer information to datastore
         # Should NOT be in the passkit tables
         # Um but these info are probably in google merchant center?
         # If so then do not need to maintain, simply query
 
-    elif platform=='ios':
+    elif platform == 'iphone' or platform == 'ios':
+
+        # Record platform info
+        platinfo.record_platform(serialNumber, 'apple')
 
         # Queue load image task
         offerimg = request.args.get('offerImage')
@@ -263,7 +270,7 @@ def registration(version, deviceLibraryIdentifier, passTypeIdentifier, serialNum
 
     # Register
     if request.method == 'POST':
-        pushToken = request.jsonod['pushToken']
+        pushToken = request.json['pushToken']
         status = passkit.register_pass_to_device(version, deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken, authTitle)
 
         logging.error('/PASSKIT/REGIST PUSHTOKEN: {}'.format(pushToken))
@@ -461,7 +468,7 @@ def redeem_pass():
         return build_response(
             'Serial: {}\nVerified: {}'.format(
                 request.args.get('serialNumber'),
-                status == 200 and deviceLibraryIdentifier
+                (status == 200 and deviceLibraryIdentifier != None)
             ),
             status=status
         )
@@ -479,7 +486,7 @@ def redeem_pass():
         return build_response(
             'Serial: {}\nRedeemed: {}'.format(
                 request.args.get('serialNumber'),
-                status == 200 and deviceLibraryIdentifier
+                (status == 200 and deviceLibraryIdentifier != None)
             ),
             status=status
         )
@@ -498,6 +505,21 @@ def list_passes():
 
 # [END PUSH NOTIFICATION SUPPORT]
 
+@app.route('/redeem', methods=['GET', 'POST'])
+@requires_auth
+def redeem_apple_and_android():
+
+    serialNumber = request.args.get('serialNumber')
+    platform = platinfo.get_platform(serialNumber)
+
+    # Redirect code 307 preserves request method
+    if platform == 'android':
+        return redirect('/android/redeem?serialNumber={}'.format(serialNumber), code=307)
+    elif platform == 'apple':
+        return redirect('/pass/redeem?serialNumber={}'.format(serialNumber), code=307)
+    else:
+        return build_response('No platform information.')
+
 
 @app.route('/android/redeem', methods=['GET', 'POST'])
 @requires_auth
@@ -505,49 +527,35 @@ def redeem_android_offer():
 
     if request.method == 'GET': #VERIFY
 
-        # GET Offer object
-        offer = s2ap.getOfferObject(request.args.get('serialNumber'))
+        status = s2ap.verify_offer_object(request.args.get('serialNumber'))
 
-        if offer['state'] == ObjectState.ACTIVE: # and offerExpiration < now:
+        if status == 200:
             logging.error('ANDROID/VERIFY succeeded.')
-            status = 200
-        else:
+        else: # status == 400
             logging.error('ANDROID/VERIFY failed.')
-            status = 400
 
         return build_response(
-            json.dumps({'Success': status == 200}),
-            contenttype='json',
+            'Serial: {}\nVerified: {}'.format(
+                request.args.get('serialNumber'),
+                status == 200
+            ),
             status=status
         )
 
-
     else: #request.method == 'POST: #REDEEM
 
-        # GET Offer object
-        offer = s2ap.getOfferObject(request.args.get('serialNumber'))
+        status = s2ap.redeem_offer_object(request.args.get('serialNumber'))
 
-        # TODO Better update logic
-        # Update offer object
-        if offer['state'] == ObjectState.ACTIVE: # and offerExpiration < now:
-
-            offer['version'] = str(int(offer['version']) + 1)
-            offer['state'] = ObjectState.COMPLETE
-            offer['barcode']['value'] = 'OFFER HAS BEEN REDEEMED'
-            offer['barcode']['alternateText'] = 'OFFER HAS BEEN REDEEMED'
-
-            # PUT Offer object
-            s2ap.updateOfferObject(offer_object_id=request.args.get('serialNumber'),
-                                   offer_object_dict=offer)
+        if status == 200:
             logging.error('ANDROID/REDEEM succeeded.')
-            status = 200
-        else:
+        else:   # status == 400
             logging.error('ANDROID/REDEEM failed.')
-            status = 400
 
         return build_response(
-            json.dumps(offer),
-            contenttype='json',
+            'Serial: {}\nRedeemed: {}'.format(
+                request.args.get('serialNumber'),
+                status == 200
+            ),
             status=status
         )
 
@@ -557,11 +565,12 @@ def redeem_android_offer():
 def list_android_offers():
 
     return build_response(
-        s2ap.listOfferObjects(),
+        s2ap.list_offer_objects(),
         status=200
     )
 
 
+# [START cron]
 @app.route('/cleanup/storage')
 def cleanup_storage():
 
@@ -570,7 +579,7 @@ def cleanup_storage():
         'Daily storage cleanup.\nStatus: {}'.format(status),
         status=status
     )
-
+# [END cron]
 
 @app.errorhandler(500)
 def server_error(e):
