@@ -6,6 +6,7 @@ import config
 from models import OfferClass, OfferObject, ObjectState, RequestJwt
 import datetime
 from pytz import timezone
+import zipquery
 try:
     import simplejson as json
 except ImportError:
@@ -76,7 +77,7 @@ class SaveToAndroidApiHandler(object):
         return offer_class
 
     def create_offer_object(self, offer_object_id, offer_text, offer_expiration,
-                            offer_barcode_message, offer_image_url, version='1'):
+                            offer_barcode_message, offer_image_url, offer_zipcode, version='1'):
 
         offer_object = OfferObject(
             config.ISSUER_ID,
@@ -87,6 +88,8 @@ class SaveToAndroidApiHandler(object):
         offer_object.addBarcode(value=offer_barcode_message, alternate_text=offer_object_id)
         offer_object.addImageModule(offer_image_url)
         offer_object.addMessage(0, 'Offer Details', offer_text)
+        for (lat, lng) in zipquery.get_store_from_zip(offer_zipcode):
+            offer_object.addLocation(lat, lng, config.ISSUER_NAME)
 
         return offer_object
 

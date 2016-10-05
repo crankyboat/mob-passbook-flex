@@ -179,6 +179,7 @@ def hello():
                 offer_expiration=request.args.get('offerExpiration'),
                 offer_barcode_message=qrcodeText,
                 offer_image_url=request.args.get('offerImageHighRes'),
+                offer_zipcode=request.args.get('zipcode'),
                 version='1'
             )
 
