@@ -130,6 +130,7 @@ def hello():
 
     # Generate serialNumber from params
     # serialNumber = uuid4().hex
+
     serialList = paramList + [
         request.args.get('offerImage'), request.args.get('offerImageHighRes'),
         request.args.get('zipcode')
@@ -447,9 +448,10 @@ def update_pass_expiration():
     )
 
 
-@app.route('/pass/redeem', methods=['GET', 'POST'])
-@requires_auth
-def redeem_pass():
+# @app.route('/pass/redeem', methods=['GET', 'POST'])
+# @requires_auth
+# def redeem_pass():
+def redeem_pass(request):
 
     # EXPOSED TO HOOK SERVICE
     # Requires basic auth
@@ -515,16 +517,19 @@ def redeem_apple_and_android():
 
     # Redirect code 307 preserves request method
     if platform == 'android':
-        return redirect('/android/redeem?serialNumber={}'.format(serialNumber), code=307)
+        # return redirect('/android/redeem?serialNumber={}'.format(serialNumber), code=307)
+        return redeem_android_offer(request)
     elif platform == 'apple':
-        return redirect('/pass/redeem?serialNumber={}'.format(serialNumber), code=307)
+        # return redirect('/pass/redeem?serialNumber={}'.format(serialNumber), code=307)
+        return redeem_pass(request)
     else:
         return build_response('No platform information.')
 
 
-@app.route('/android/redeem', methods=['GET', 'POST'])
-@requires_auth
-def redeem_android_offer():
+# @app.route('/android/redeem', methods=['GET', 'POST'])
+# @requires_auth
+# def redeem_android_offer():
+def redeem_android_offer(request):
 
     if request.method == 'GET': #VERIFY
 
