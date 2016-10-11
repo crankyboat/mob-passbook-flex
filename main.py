@@ -171,18 +171,19 @@ def hello():
 
         offer_object = s2ap.get_offer_object(serialNumber)
 
-        if not offer_object:
+        if offer_object:
+            logging.error('OFFER_OBJECT ALREADY EXISTS.')
 
-            # Create and sign offer object
-            offer_object = s2ap.create_offer_object(
-                offer_object_id=serialNumber,
-                offer_text=request.args.get('offerText'),
-                offer_expiration=request.args.get('offerExpiration'),
-                offer_barcode_message=qrcodeText,
-                offer_image_url=request.args.get('offerImageHighRes'),
-                offer_zipcode=request.args.get('zipcode'),
-                version='1'
-            )
+        # Create and sign offer object
+        offer_object = s2ap.create_offer_object(
+            offer_object_id=serialNumber,
+            offer_text=request.args.get('offerText'),
+            offer_expiration=request.args.get('offerExpiration'),
+            offer_barcode_message=qrcodeText,
+            offer_image_url=request.args.get('offerImageHighRes'),
+            offer_zipcode=request.args.get('zipcode'),
+            version='1'
+        )
 
         signed_jwt = s2ap.create_signed_jwt(offer_object)
 
