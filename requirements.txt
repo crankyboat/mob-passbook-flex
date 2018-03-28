@@ -7,8 +7,8 @@ honcho>=0.7.1
 psq
 pytz>=2016.6.1
 urllib3>=1.15
--e git+https://github.com/crankyboat/passbook-pull.git#egg=passbook
--e git+https://github.com/crankyboat/apns3-pull.git@develop#egg=apns3[pyopenssl]
+-e git+https://github.com/crankyboat/passbook.git#egg=passbook
+-e git+https://github.com/crankyboat/apns3.git@develop#egg=apns3[pyopenssl]
 # -e ./apns3[pyopenssl]
 # -e ./passbook/
 google-api-python-client
